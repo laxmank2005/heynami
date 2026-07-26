@@ -17,7 +17,7 @@ export const sendMessage = async (req, res) => {
         });
     }
 
-    const newMessage = await Message.create({
+    const newMessage = await Messages.create({
         senderId,
         receiverId,
         message

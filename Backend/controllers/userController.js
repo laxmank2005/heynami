@@ -112,9 +112,19 @@ export const getOtherUsers = async (req,res)=>{
     try{
         const loggedInUserId = req.id;
         const otherUsers = await User.find({_id:{$ne:loggedInUserId}}).select("-password");
+        return res.status(200).json({
+    success: true,
+    users: otherUsers,
+});
+
     }
     catch(error){
       
         console.error(error);
+
+        return res.status(500).json({
+    success: false,
+    message: "Internal Server Error",
+});
     }
   }
