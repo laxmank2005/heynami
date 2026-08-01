@@ -23,11 +23,9 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     //Profile photo generation based on gender and username api
-    const maleProfilePhoto =
-  `https://avatarapi.runflare.run/public/boy?${username}`;
+    const maleProfilePhoto = `https://avatarapi.runflare.run/public/boy?${username}`;
 
-const femaleProfilePhoto =
-  `https://avatarapi.runflare.run/public/girl?${username}`;
+    const femaleProfilePhoto = `https://avatarapi.runflare.run/public/girl?${username}`;
 
     await User.create({
       fullName,
@@ -37,6 +35,7 @@ const femaleProfilePhoto =
       gender,
     });
     return res.status(201).json({
+      success: true,
       message: "User registered successfully",
     });
   } catch (error) {
@@ -86,6 +85,8 @@ export const login = async (req, res) => {
         sameSite: "strict",
       })
       .json({
+        success: true,
+        message: "Login successful",
         _id: user._id,
         fullName: user.fullName,
         username: user.username,

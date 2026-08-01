@@ -1,6 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 
 const Register = () => {
@@ -12,29 +13,33 @@ const Register = () => {
     gender: "",
   });
 
+  const navigate = useNavigate();
+
   const handleCheckbox = (gender) => {
     setUser({ ...user, gender });
   };
 
-  const onSubmithHandler = async(e) => {
+  const onSubmithHandler = async (e) => {
     e.preventDefault();
-    try{
-      const res=await axios.post(`http://localhost:8080/api/v1/user/register`, user,{
-        headers:{
-          "Content-Type":"application/json"
-        },
-        withCredentials:true
-      });
-      console.log(res);
-    }
-
-    catch{
+    try {
+      const res = await axios.post(
+        "http://localhost:8080/api/v1/user/register",
+        user,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        });
+        if (res.data.success) {
+          navigate("/login");
+          toast.success(res.data.message);
+        }
+    } catch {
+      toast.error(error.response.data.message);
       console.log("error");
     }
-      
-    
-    
-    
+
     setUser({
       fullName: "",
       username: "",
@@ -45,8 +50,8 @@ const Register = () => {
   };
 
   return (
-    <div className=" min-w-96 mx-auto">
-      <div className="w-full  p-6 rounded-lg shadow-md">
+    <div className="min-w-96 mx-auto">
+      <div className="w-full p-6 rounded-lg shadow-md">
         <h1 className="text-3xl text-[#6087D0] font-bold text-center">
           Signup
         </h1>
@@ -109,8 +114,8 @@ const Register = () => {
             />
           </div>
 
-          <div className="flex items-center justify-start mt-4 gap-4 ">
-            <div className="flex items-center ">
+          <div className="flex items-center justify-start gap-4 mt-4">
+            <div className="flex items-center">
               <p>Male</p>
               <input
                 type="checkbox"
@@ -120,7 +125,7 @@ const Register = () => {
               />
             </div>
 
-            <div className="flex items-center ">
+            <div className="flex items-center">
               <p>Female</p>
               <input
                 type="checkbox"
@@ -133,7 +138,7 @@ const Register = () => {
 
           <p className="text-center mt-2">
             Already have an account?
-            <Link to="/login" className="text-sm  hover:underline">
+            <Link to="/login" className="text-sm hover:underline">
               <span className="text-[#6087D0]">Login</span>
             </Link>
           </p>
@@ -150,6 +155,5 @@ const Register = () => {
       </div>
     </div>
   );
-
 };
 export default Register;
