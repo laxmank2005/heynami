@@ -1,8 +1,7 @@
 import React from "react";
-import { Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-
 
 const Register = () => {
   const [user, setUser] = React.useState({
@@ -30,11 +29,12 @@ const Register = () => {
             "Content-Type": "application/json",
           },
           withCredentials: true,
-        });
-        if (res.data.success) {
-          navigate("/login");
-          toast.success(res.data.message);
-        }
+        },
+      );
+      if (res.data.success) {
+        navigate("/login");
+        toast.success(res.data.message);
+      }
     } catch {
       toast.error(error.response.data.message);
       console.log("error");
