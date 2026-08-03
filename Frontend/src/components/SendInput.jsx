@@ -1,12 +1,13 @@
 import { IoMdSend } from "react-icons/io";
 
+
 const SendInput = () => {
   return (
     <form className="px-4 my-3">
       <div className="relative w-full">
         <input
           type="text"
-          placeholder="Send a message..."
+          placeholder=" Type a message..."
           className="block w-full rounded-2xl border border-gray-400 p-2 pr-12 text-sm text-black"
         />
 

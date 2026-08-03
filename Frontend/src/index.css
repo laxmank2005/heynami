@@ -1,6 +1,35 @@
 @import "tailwindcss";
 @plugin "daisyui" {
   themes: light --default;
-
 }
 
+/* Chrome / Edge */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;   /* Smaller width */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #d9dee8;
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #9ca3af;   /* Gray thumb */
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af #d9dee8;
+}

@@ -1,0 +1,24 @@
+{
+  "name": "chattingapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix Backend\" \"npm run dev --prefix Frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laxmank2005/Chatting-Application.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/laxmank2005/Chatting-Application/issues"
+  },
+  "homepage": "https://github.com/laxmank2005/Chatting-Application#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.4"
+  }
+}

@@ -35,9 +35,9 @@ const Register = () => {
         navigate("/login");
         toast.success(res.data.message);
       }
-    } catch {
-      toast.error(error.response.data.message);
-      console.log("error");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Registration failed");
+      console.log(error);
     }
 
     setUser({
