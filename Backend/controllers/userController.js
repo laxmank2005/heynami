@@ -23,9 +23,9 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     //Profile photo generation based on gender and username api
-    const maleProfilePhoto = `https://avatarapi.runflare.run/public/boy?${username}`;
+    const maleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`;
 
-    const femaleProfilePhoto = `https://avatarapi.runflare.run/public/girl?${username}`;
+    const femaleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`;
 
     await User.create({
       fullName,

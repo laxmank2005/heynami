@@ -5,10 +5,9 @@ import userRoutes from "./routes/userRoutes.js";
 import cookieParser from "cookie-parser";
 import messageRoutes from "./routes/messageRoutes.js";
 import cors from "cors";
+import { app, server } from "./socket/socket.js";
 
 dotenv.config();
-
-const app = express();
 
 app.use(
   cors({
@@ -29,8 +28,9 @@ connectDB();
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/message", messageRoutes);
 //http://localhost:8080/api/v1/user/register
+//http://localhost:8080/api/v1/message/
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 

@@ -3,33 +3,38 @@
   themes: light --default;
 }
 
-/* Chrome / Edge */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;   /* Smaller width */
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: #d9dee8;
-  border-radius: 999px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #9ca3af;   /* Gray thumb */
-  border-radius: 999px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-.custom-scrollbar::-webkit-scrollbar-button {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
-/* Firefox */
+/* Hide scrollbars completely but keep scrolling functionality */
 .custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #9ca3af #d9dee8;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Alternative: Show scrollbar only on hover */
+.custom-scrollbar-hover {
+  overflow-y: auto;
+}
+
+.custom-scrollbar-hover::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar-hover::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar-hover::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+
+.custom-scrollbar-hover:hover::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+}
+
+.custom-scrollbar-hover::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }

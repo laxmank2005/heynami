@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
+import { IoEye, IoEyeOff } from "react-icons/io5";
 
 const Register = () => {
   const [user, setUser] = React.useState({
@@ -11,6 +12,8 @@ const Register = () => {
     confirmPassword: "",
     gender: "",
   });
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
   const navigate = useNavigate();
 
@@ -89,13 +92,22 @@ const Register = () => {
               <span className="text-base label-text">Password</span>
             </label>
 
-            <input
-              value={user.password}
-              onChange={(e) => setUser({ ...user, password: e.target.value })}
-              className="input w-full input-bordered h-10"
-              type="password"
-              placeholder="Enter password"
-            />
+            <div className="relative">
+              <input
+                value={user.password}
+                onChange={(e) => setUser({ ...user, password: e.target.value })}
+                className="input w-full input-bordered h-10 pr-10"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+              </button>
+            </div>
           </div>
 
           <div>
@@ -103,15 +115,24 @@ const Register = () => {
               <span className="text-base label-text">Confirm Password</span>
             </label>
 
-            <input
-              value={user.confirmPassword}
-              onChange={(e) =>
-                setUser({ ...user, confirmPassword: e.target.value })
-              }
-              className="input w-full input-bordered h-10"
-              type="password"
-              placeholder="Confirm Password"
-            />
+            <div className="relative">
+              <input
+                value={user.confirmPassword}
+                onChange={(e) =>
+                  setUser({ ...user, confirmPassword: e.target.value })
+                }
+                className="input w-full input-bordered h-10 pr-10"
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showConfirmPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-start gap-4 mt-4">
