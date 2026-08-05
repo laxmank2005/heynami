@@ -6,7 +6,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setAuthUser } from "../redux/userSlice";
 import { IoEye, IoEyeOff } from "react-icons/io5";
-import { BiMessageSquareDetail } from "react-icons/bi";
+import { API_ENDPOINTS } from "../config/api";
 
 const Login = () => {
   const [user, setUser] = React.useState({
@@ -22,7 +22,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        `http://localhost:8080/api/v1/user/login`,
+        API_ENDPOINTS.USER.LOGIN,
         user,
         {
           headers: {

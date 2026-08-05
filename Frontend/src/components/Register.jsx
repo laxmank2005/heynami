@@ -3,8 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { IoEye, IoEyeOff } from "react-icons/io5";
-import { BiMessageSquareDetail } from "react-icons/bi";
-import { HiUserCircle } from "react-icons/hi";
+import { API_ENDPOINTS } from "../config/api";
 
 const Register = () => {
   const [user, setUser] = React.useState({
@@ -27,7 +26,7 @@ const Register = () => {
     e.preventDefault();
     try {
       const res = await axios.post(
-        "http://localhost:8080/api/v1/user/register",
+        API_ENDPOINTS.USER.REGISTER,
         user,
         {
           headers: {

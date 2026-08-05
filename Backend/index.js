@@ -9,9 +9,12 @@ import { app, server } from "./socket/socket.js";
 
 dotenv.config();
 
+const PORT = process.env.PORT || 8080;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: FRONTEND_URL,
     credentials: true,
   })
 );
@@ -19,20 +22,22 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-
-const PORT = process.env.PORT || 8080;
-
 connectDB();
 
 // routes
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/message", messageRoutes);
-//http://localhost:8080/api/v1/user/register
-//http://localhost:8080/api/v1/message/
+
+// Health check endpoint
+app.get("/", (req, res) => {
+  res.json({ message: "Chat API is running!", status: "ok" });
+});
 
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
+
 
 
 

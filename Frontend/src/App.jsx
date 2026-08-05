@@ -11,6 +11,7 @@ import io from 'socket.io-client'
 import { useState } from "react";
 import { setOnlineUsers } from "./redux/userSlice";
 import { setSocket } from "./redux/socketSlice";
+import { SOCKET_URL } from "./config/api";
 
 
 
@@ -38,7 +39,7 @@ const App = () => {
 
   useEffect(() => {
     if (authUser) {
-      const socketInstance = io('http://localhost:8080', {
+      const socketInstance = io(SOCKET_URL, {
         query: {
           userId: authUser._id
         }

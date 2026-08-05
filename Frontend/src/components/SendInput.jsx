@@ -4,21 +4,37 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState } from "react";
 import { setMessages } from "../redux/messageSlice";
 import { toast } from "react-hot-toast";
+import { API_ENDPOINTS } from "../config/api";
 
 const SendInput = () => {
   const [message, setMessage] = useState("");
   const dispatch = useDispatch();
-  const { selectedUser } = useSelector(store => store.user);
+  const { selectedUser, authUser } = useSelector(store => store.user);
   const { messages } = useSelector(store => store.message);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
     
+    const messageText = message;
+    setMessage(""); // Clear input immediately
+    
+    // Optimistic update - show message instantly
+    const tempMessage = {
+      _id: Date.now().toString(), // Temporary ID
+      message: messageText,
+      senderId: authUser._id,
+      receiverId: selectedUser._id,
+      createdAt: new Date().toISOString(),
+    };
+    
+    // Add to UI immediately
+    dispatch(setMessages([...(messages || []), tempMessage]));
+    
     try {
       const res = await axios.post(
-        `http://localhost:8080/api/v1/message/send/${selectedUser?._id}`,
-        { message },
+        API_ENDPOINTS.MESSAGE.SEND(selectedUser?._id),
+        { message: messageText },
         {
           headers: {
             'Content-Type': 'application/json'
@@ -26,9 +42,13 @@ const SendInput = () => {
           withCredentials: true
         }
       );
-      dispatch(setMessages([...(messages || []), res.data.newMessage]));
-      setMessage("");
+      
+      // Replace temp message with real one from server
+      const updatedMessages = [...(messages || []), res.data.newMessage];
+      dispatch(setMessages(updatedMessages));
     } catch (error) {
+      // Remove temp message on error
+      dispatch(setMessages(messages || []));
       toast.error("Failed to send message");
     }
   };

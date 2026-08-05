@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setOtherUsers } from "../redux/userSlice";
+import { API_ENDPOINTS } from "../config/api";
 
 const useGetOtherUsers = () => {
   const dispatch = useDispatch();
@@ -9,7 +10,7 @@ const useGetOtherUsers = () => {
   useEffect(() => {
     const fetchOtherUsers = async () => {
       try {
-        const res = await fetch("http://localhost:8080/api/v1/user/", {
+        const res = await fetch(API_ENDPOINTS.USER.GET_OTHER_USERS, {
           credentials: "include",
         });
 
