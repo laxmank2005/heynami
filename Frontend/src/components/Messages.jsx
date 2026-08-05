@@ -12,7 +12,7 @@ const Messages = () => {
   // if (!messages) return;
 
   return (
-    <div className="flex-1 p-4 overflow-auto custom-scrollbar bg-gray-100">
+    <div className="flex-1 p-4 overflow-auto custom-scrollbar bg-white">
       {
        messages && messages?.map((message) => {
           return (

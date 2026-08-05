@@ -57,7 +57,7 @@ const App = () => {
     }
   }, [authUser]);
   return (
-    <div className="p-4 h-screen flex items-center justify-center   ">
+    <div className="h-screen w-screen overflow-hidden">
       <RouterProvider router={router} /> 
     </div>
   )
