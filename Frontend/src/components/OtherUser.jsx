@@ -34,7 +34,7 @@ const OtherUser = ({ user }) => {
 
       <div className="flex flex-col flex-1 min-w-0">
         <p className="font-medium truncate text-gray-900">{user.fullName}</p>
-        <p className="text-xs text-gray-500">
+        <p className={`text-xs font-medium ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
           {isOnline ? 'Online' : 'Offline'}
         </p>
       </div>
