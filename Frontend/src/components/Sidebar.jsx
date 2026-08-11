@@ -13,7 +13,7 @@ import { API_ENDPOINTS } from '../config/api';
 
 const Sidebar = () => {
   const [search ,setSearch]=useState("");
-  const {otherUsers, authUser}=useSelector(store=>store.user)
+  const {otherUsers, authUser, selectedUser}=useSelector(store=>store.user)
   const dispatch =useDispatch();
 
   const navigate =useNavigate();
@@ -39,7 +39,7 @@ const Sidebar = () => {
 
 
   return (
-    <div className="w-full sm:w-80 md:w-96 bg-white border-r border-gray-200 flex flex-col h-full">
+    <div className={`w-full sm:w-80 md:w-96 bg-white border-r border-gray-200 flex-col h-full ${selectedUser ? 'hidden sm:flex' : 'flex'}`}>
       {/* Header */}
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between mb-4">

@@ -1,6 +1,6 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setSelectedUser } from "../redux/userSlice";
+import { setSelectedUser, clearUnread } from "../redux/userSlice";
 
 const OtherUser = ({ user }) => {
   const dispatch = useDispatch();
@@ -9,6 +9,7 @@ const OtherUser = ({ user }) => {
 
   const selectedUserHandler = () => {
     dispatch(setSelectedUser(user));
+    dispatch(clearUnread(user._id));
   };
 
   return (
@@ -33,7 +34,12 @@ const OtherUser = ({ user }) => {
       </div>
 
       <div className="flex flex-col flex-1 min-w-0">
-        <p className="font-medium truncate text-gray-900">{user.fullName}</p>
+        <div className="flex justify-between items-center">
+          <p className={`font-medium truncate ${user.hasUnread ? 'text-gray-900 font-bold' : 'text-gray-900'}`}>{user.fullName}</p>
+          {user.hasUnread && (
+            <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">New</span>
+          )}
+        </div>
         <p className={`text-xs font-medium ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
           {isOnline ? 'Online' : 'Offline'}
         </p>

@@ -18,6 +18,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [focused, setFocused] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const navigate = useNavigate();
 
@@ -27,6 +28,7 @@ const Register = () => {
 
   const onSubmithHandler = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const res = await axios.post(
         API_ENDPOINTS.USER.REGISTER,
@@ -45,6 +47,8 @@ const Register = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Registration failed");
       console.log(error);
+    } finally {
+      setIsLoading(false);
     }
 
     setUser({
@@ -254,10 +258,17 @@ const Register = () => {
               {/* Sign Up Button */}
               <button
                 type="submit"
-                className="group w-full flex items-center justify-center gap-2 bg-stone-900 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-stone-800 transition-all duration-200 shadow-lg shadow-stone-300/40 hover:shadow-stone-400/50 mt-1"
+                disabled={isLoading}
+                className="group w-full flex items-center justify-center gap-2 bg-stone-900 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-stone-800 transition-all duration-200 shadow-lg shadow-stone-300/40 hover:shadow-stone-400/50 mt-1 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Create Account
-                <BsArrowRight className="group-hover:translate-x-1 transition-transform" />
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Create Account
+                    <BsArrowRight className="group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </button>
 
               {/* Divider */}

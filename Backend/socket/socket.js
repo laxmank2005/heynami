@@ -28,7 +28,7 @@ io.on('connection',(socket)=>{
     console.log('user connected',socket.id);
 
     const userId=socket.handshake.query.userId
-    if(userId !== undefined){
+    if(userId && userId !== "undefined"){
         userSocketMap[userId]=socket.id;
     }
 
@@ -36,7 +36,9 @@ io.on('connection',(socket)=>{
 
     socket.on('disconnect',()=>{
         console.log('user disconnected',socket.id);
-        delete userSocketMap[userId];
+        if (userId && userSocketMap[userId] === socket.id) {
+            delete userSocketMap[userId];
+        }
         io.emit('getOnlineUsers',Object.keys(userSocketMap));
     })
 })

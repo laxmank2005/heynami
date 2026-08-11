@@ -16,12 +16,14 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = React.useState(false);
   const [focused, setFocused] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const onSubmithHandler = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
     try {
       const res = await axios.post(
         API_ENDPOINTS.USER.LOGIN,
@@ -51,6 +53,8 @@ const Login = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Login failed");
+    } finally {
+      setIsLoading(false);
     }
     setUser({
       username: "",
@@ -159,10 +163,17 @@ const Login = () => {
               {/* Login Button */}
               <button
                 type="submit"
-                className="group w-full flex items-center justify-center gap-2 bg-stone-900 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-stone-800 transition-all duration-200 shadow-lg shadow-stone-300/40 hover:shadow-stone-400/50 mt-2"
+                disabled={isLoading}
+                className="group w-full flex items-center justify-center gap-2 bg-stone-900 text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-stone-800 transition-all duration-200 shadow-lg shadow-stone-300/40 hover:shadow-stone-400/50 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Sign In
-                <BsArrowRight className="group-hover:translate-x-1 transition-transform" />
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Sign In
+                    <BsArrowRight className="group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </button>
 
               {/* Divider */}

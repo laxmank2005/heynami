@@ -3,6 +3,7 @@ import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { useState } from "react";
 import { setMessages } from "../redux/messageSlice";
+import { updateUserList } from "../redux/userSlice";
 import { toast } from "react-hot-toast";
 import { API_ENDPOINTS } from "../config/api";
 
@@ -47,6 +48,11 @@ const SendInput = () => {
       // Replace temp message with real one from server
       const updatedMessages = [...(messages || []), res.data.newMessage];
       dispatch(setMessages(updatedMessages));
+      
+      dispatch(updateUserList({
+        userId: selectedUser._id,
+        isUnread: false
+      }));
     } catch (error) {
       // Remove temp message on error
       dispatch(setMessages(messages || []));
