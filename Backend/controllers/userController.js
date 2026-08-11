@@ -32,7 +32,7 @@ export const register = async (req, res) => {
       username,
       password: hashedPassword,
       profilePhoto: gender === "male" ? maleProfilePhoto : femaleProfilePhoto,
-      gender,
+      gender
     });
     return res.status(201).json({
       success: true,
@@ -83,6 +83,7 @@ export const login = async (req, res) => {
         maxAge: 1 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: "strict",
+        secure: process.env.NODE_ENV !== "development",
       })
       .json({
         success: true,

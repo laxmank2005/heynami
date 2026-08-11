@@ -31,12 +31,9 @@ const Sidebar = () => {
   }
   const searchSubmitHandler =(e)=>{
     e.preventDefault();
-    const conversationUser = otherUsers?.find((user) => user.fullName.toLowerCase().includes(search.toLowerCase()))
-    if (conversationUser){
-      dispatch(setOtherUsers([conversationUser]));
-    }
-    else{
-      toast.error("User not found !");
+    if (!search) {
+      toast.error("Please enter a username to search");
+      return;
     }
   }
 
@@ -82,7 +79,7 @@ const Sidebar = () => {
 
       {/* Users List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <OtherUsers/>
+        <OtherUsers search={search} />
       </div>
     </div>
   )

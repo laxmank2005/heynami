@@ -86,3 +86,153 @@
     transform: translateY(0);
   }
 }
+
+/* ─────────────────────────────────────────
+   Landing Page Styles
+   ───────────────────────────────────────── */
+
+.landing-root {
+  overflow-x: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Organic background blobs */
+.hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+  will-change: transform;
+  transition: transform 0.1s linear;
+}
+
+.blob-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(165, 180, 252, 0.45) 0%, rgba(196, 181, 253, 0.2) 70%);
+  top: -120px;
+  right: -80px;
+  animation: blobDrift1 18s ease-in-out infinite alternate;
+}
+
+.blob-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(253, 186, 116, 0.25) 0%, rgba(252, 211, 77, 0.1) 70%);
+  bottom: -80px;
+  left: -120px;
+  animation: blobDrift2 22s ease-in-out infinite alternate;
+}
+
+.blob-3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(167, 243, 208, 0.3) 0%, rgba(110, 231, 183, 0.1) 70%);
+  top: 40%;
+  left: 45%;
+  animation: blobDrift3 15s ease-in-out infinite alternate;
+}
+
+@keyframes blobDrift1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-40px, 30px) scale(1.08); }
+}
+@keyframes blobDrift2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(50px, -40px) scale(1.05); }
+}
+@keyframes blobDrift3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-30px, -20px) scale(0.95); }
+}
+
+/* Grain texture overlay */
+.grain-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Rotating word transition */
+.landing-rotate-word {
+  transition: opacity 0.3s ease;
+  color: #4f46e5;
+}
+
+/* Chat mockup animations */
+.chat-mockup {
+  animation: mockupFloat 6s ease-in-out infinite;
+}
+
+@keyframes mockupFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+.mockup-msg {
+  opacity: 0;
+  animation: msgAppear 0.5s ease forwards;
+}
+
+.mockup-msg-left { transform: translateX(-16px); }
+.mockup-msg-right { transform: translateX(16px); }
+
+.mockup-delay-1 { animation-delay: 0.6s; }
+.mockup-delay-2 { animation-delay: 1.2s; }
+.mockup-delay-3 { animation-delay: 1.8s; }
+.mockup-delay-4 { animation-delay: 2.4s; }
+
+@keyframes msgAppear {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Notification floating bubble */
+.notification-float {
+  animation: notifFloat 4s ease-in-out infinite;
+}
+.notification-float-delayed {
+  animation: notifFloat 5s ease-in-out 1s infinite;
+}
+
+@keyframes notifFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(1deg); }
+}
+
+/* Typing dots */
+.typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #a1a1aa;
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+.typing-dot.delay-1 { animation-delay: 0.15s; }
+.typing-dot.delay-2 { animation-delay: 0.3s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30%           { transform: translateY(-5px); }
+}
+
+/* Scroll indicator */
+.scroll-bounce {
+  animation: scrollBounce 2s ease-in-out infinite;
+}
+
+.scroll-dot {
+  animation: scrollDot 2s ease-in-out infinite;
+}
+
+@keyframes scrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
+}
+
+@keyframes scrollDot {
+  0%, 100% { opacity: 1; transform: translateY(0); }
+  50%      { opacity: 0.4; transform: translateY(6px); }
+}

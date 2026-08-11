@@ -29,11 +29,11 @@ app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/message", messageRoutes);
 
 // Health check endpoint
-app.get("/", (req, res) => {
-  res.json({ message: "Chat API is running!", status: "ok" });
+app.get("/api/health", (req, res) => {
+  res.json({ success: true, message: "Server is running" });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

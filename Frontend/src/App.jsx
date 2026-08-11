@@ -1,10 +1,11 @@
 import React from "react";
 import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 
 import Homepage from "./components/Homepage";
 import Register from "./components/Register";
 import Login from "./components/Login";
+import LandingPage from "./components/LandingPage";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import io from 'socket.io-client'
@@ -13,12 +14,20 @@ import { setOnlineUsers } from "./redux/userSlice";
 import { setSocket } from "./redux/socketSlice";
 import { SOCKET_URL } from "./config/api";
 
-
+// Wrapper that decides: landing page (unauthed) or chat (authed)
+const RootRoute = () => {
+  const { authUser } = useSelector((store) => store.user);
+  return authUser ? <Homepage /> : <LandingPage />;
+};
 
 const router = createBrowserRouter([
   {
     path:"/",
-    element:<Homepage />
+    element:<RootRoute />
+  },
+  {
+    path:"/landing",
+    element:<LandingPage />
   },
    {
     path:"/register",
@@ -27,8 +36,11 @@ const router = createBrowserRouter([
    {
     path:"/login",
     element:<Login />
+  },
+  {
+    path: "*",
+    element: <Navigate to="/" />
   }
-  
 ])
 
 const App = () => {
@@ -58,7 +70,7 @@ const App = () => {
     }
   }, [authUser]);
   return (
-    <div className="h-screen w-screen overflow-hidden">
+    <div className="min-h-screen w-screen">
       <RouterProvider router={router} /> 
     </div>
   )
