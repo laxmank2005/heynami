@@ -10,7 +10,10 @@ import { app, server } from "./socket/socket.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 8080;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+let FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+if (FRONTEND_URL.endsWith('/')) {
+  FRONTEND_URL = FRONTEND_URL.slice(0, -1);
+}
 
 app.use(
   cors({
