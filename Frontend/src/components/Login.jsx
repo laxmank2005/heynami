@@ -38,7 +38,8 @@ const Login = () => {
         _id: res.data._id,
         fullName: res.data.fullName,
         username: res.data.username,
-        profilePhoto: res.data.profilePhoto
+        profilePhoto: res.data.profilePhoto,
+        token: res.data.token,
       };
 
       dispatch(setAuthUser(userData));

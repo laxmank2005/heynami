@@ -10,8 +10,12 @@ const useGetOtherUsers = () => {
   useEffect(() => {
     const fetchOtherUsers = async () => {
       try {
+        const authUser = JSON.parse(localStorage.getItem("authUser"));
         const res = await fetch(API_ENDPOINTS.USER.GET_OTHER_USERS, {
           credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${authUser?.token}`
+          }
         });
 
         const data = await res.json();

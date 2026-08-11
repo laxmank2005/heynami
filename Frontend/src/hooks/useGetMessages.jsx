@@ -11,9 +11,14 @@ const useGetMessages = async () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
+        const authUser = JSON.parse(localStorage.getItem("authUser"));
         axios.defaults.withCredentials = true;
         const res = await axios.get(
-          API_ENDPOINTS.MESSAGE.GET(selectedUser?._id),
+          API_ENDPOINTS.MESSAGE.GET(selectedUser?._id), {
+            headers: {
+              "Authorization": `Bearer ${authUser?.token}`
+            }
+          }
         );
         dispatch(setMessages(res.data));
       } catch (error) {

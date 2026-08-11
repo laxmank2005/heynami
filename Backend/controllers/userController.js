@@ -92,6 +92,7 @@ export const login = async (req, res) => {
         fullName: user.fullName,
         username: user.username,
         profilePhoto: user.profilePhoto,
+        token: token,
       });
   } catch (error) {
     console.error(error);

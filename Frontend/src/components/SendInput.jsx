@@ -37,7 +37,8 @@ const SendInput = () => {
         { message: messageText },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authUser?.token}`
           },
           withCredentials: true
         }
