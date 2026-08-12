@@ -16,7 +16,7 @@ const Homepage = () => {
   }, [dispatch]);
 
   return (
-    <div className='h-screen w-screen flex flex-col sm:flex-row bg-white overflow-hidden'>
+    <div className='h-[100dvh] w-screen flex flex-col sm:flex-row bg-white overflow-hidden'>
       <Sidebar/>
       <MessageContainer/>
     </div>

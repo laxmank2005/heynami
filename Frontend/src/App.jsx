@@ -70,7 +70,7 @@ const App = () => {
     }
   }, [authUser]);
   return (
-    <div className="min-h-screen w-screen">
+    <div className="min-h-[100dvh] w-screen">
       <RouterProvider router={router} /> 
     </div>
   )

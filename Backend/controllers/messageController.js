@@ -67,14 +67,13 @@ export const getMessage = async (req, res) => {
        const conversation = await Conversation.findOne({
             participants: { $all: [senderId, receiverId] }
         }).populate("messages");
-        return res.status(200).json(conversation?.messages); 
+        return res.status(200).json(conversation?.messages || []); 
         
     }
     catch (error) {
         console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-
-
 }
 
 
