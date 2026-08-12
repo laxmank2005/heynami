@@ -25,14 +25,14 @@ const LandingPage = () => {
   const [scrollY, setScrollY] = useState(0);
 
   // Responsive 3D Model State
-  const [modelScale, setModelScale] = useState(window.innerWidth < 1024 ? 4.5 : 8);
-  const [modelY, setModelY] = useState(window.innerWidth < 1024 ? -0.2 : -0.5);
+  const [modelScale, setModelScale] = useState(window.innerWidth < 1024 ? 6.5 : 8);
+  const [modelY, setModelY] = useState(window.innerWidth < 1024 ? -0.3 : -0.5);
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
-        setModelScale(4.5);
-        setModelY(-0.2);
+        setModelScale(6.5);
+        setModelY(-0.3);
       } else {
         setModelScale(8);
         setModelY(-0.5);
@@ -148,11 +148,15 @@ const LandingPage = () => {
                 <ambientLight intensity={1.5} />
                 <directionalLight position={[10, 10, 5]} intensity={2} />
                 <Suspense fallback={null}>
-                  <LuffyModel position={[0, modelY, 0]} scale={modelScale} />
+                  <LuffyModel 
+                    position={[0, modelY, 0]} 
+                    scale={modelScale} 
+                    rotation={[0, Math.PI + (scrollY * 0.003), 0]} 
+                  />
                   <Environment preset="city" />
                   <ContactShadows position={[0, modelY, 0]} opacity={0.5} scale={10} blur={2} />
                 </Suspense>
-                <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} autoRotate autoRotateSpeed={1.5} />
+                <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
               </Canvas>
             </div>
           </div>
@@ -242,16 +246,16 @@ const LandingPage = () => {
             .animate-marquee {
               display: inline-block;
               white-space: nowrap;
-              animation: marquee 15s linear infinite;
+              animation: marquee 40s linear infinite;
             }
           `}
         </style>
         <div className="w-full flex items-center">
           <div className="animate-marquee">
-            <span className="text-5xl sm:text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500 uppercase tracking-tighter pr-16 drop-shadow-lg">
+            <span className="text-xl sm:text-2xl md:text-3xl font-bold text-[#888888] uppercase tracking-[0.2em] pr-16">
               THE THREE MONKEYS =&gt; ALONE, NAAMI & ECHO
             </span>
-            <span className="text-5xl sm:text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-500 uppercase tracking-tighter drop-shadow-lg">
+            <span className="text-xl sm:text-2xl md:text-3xl font-bold text-[#888888] uppercase tracking-[0.2em]">
               THE THREE MONKEYS =&gt; ALONE, NAAMI & ECHO
             </span>
           </div>
