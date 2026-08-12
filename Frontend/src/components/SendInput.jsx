@@ -61,20 +61,20 @@ const SendInput = () => {
   };
 
   return (
-    <form onSubmit={onSubmitHandler} className="p-4 bg-white border-t border-gray-200">
+    <form onSubmit={onSubmitHandler} className="p-4 bg-white dark:bg-[#111111] border-t border-gray-200 dark:border-stone-800 transition-colors duration-300">
       <div className="flex items-center gap-2">
         <input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           type="text"
           placeholder="Type a message..."
-          className="flex-1 px-4 py-2 rounded-full border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition"
+          className="flex-1 px-4 py-2 rounded-full bg-white dark:bg-[#1a1a1a] border border-gray-300 dark:border-stone-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-stone-500 focus:border-blue-500 dark:focus:border-indigo-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-indigo-500 outline-none transition-colors"
         />
 
         <button
           type="submit"
           disabled={!message.trim()}
-          className="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-blue-500 dark:bg-indigo-600 text-white p-3 rounded-full hover:bg-blue-600 dark:hover:bg-indigo-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <IoMdSend className="h-5 w-5" />
         </button>

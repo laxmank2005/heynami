@@ -15,13 +15,13 @@ const MessageContainer = () => {
     <>
     {
       selectedUser !== null ? (
-        <div className={`flex-1 flex-col bg-white h-full ${selectedUser ? 'flex' : 'hidden sm:flex'}`}>
+        <div className={`flex-1 flex-col bg-white dark:bg-[#0a0a0a] h-full transition-colors duration-300 ${selectedUser ? 'flex' : 'hidden sm:flex'}`}>
           {/* Chat Header */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <div className="bg-white dark:bg-[#111111] border-b border-gray-200 dark:border-stone-800 px-4 py-3 flex items-center justify-between transition-colors duration-300">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => dispatch(setSelectedUser(null))}
-                className="sm:hidden text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition"
+                className="sm:hidden text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-800 p-2 rounded-lg transition"
               >
                 <IoArrowBack className="h-5 w-5" />
               </button>
@@ -30,20 +30,20 @@ const MessageContainer = () => {
                 <img 
                   src={selectedUser?.profilePhoto} 
                   alt={selectedUser?.fullName}
-                  className="w-10 h-10 rounded-full"
+                  className="w-10 h-10 rounded-full border-2 border-transparent dark:border-stone-800"
                 />
                 {isOnline && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></span>
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-[#111111] rounded-full"></span>
                 )}
               </div>
               
               <div>
-                <h3 className="text-gray-900 font-semibold">{selectedUser?.fullName}</h3>
-                <p className="text-xs text-gray-500">{isOnline ? 'Online' : 'Offline'}</p>
+                <h3 className="text-gray-900 dark:text-white font-semibold transition-colors">{selectedUser?.fullName}</h3>
+                <p className="text-xs text-gray-500 dark:text-stone-400 transition-colors">{isOnline ? 'Online' : 'Offline'}</p>
               </div>
             </div>
             
-            <button className="text-gray-600 hover:bg-gray-100 p-2 rounded-lg transition">
+            <button className="text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-800 p-2 rounded-lg transition">
               <BsThreeDotsVertical className="h-5 w-5" />
             </button>
           </div>
@@ -55,12 +55,12 @@ const MessageContainer = () => {
           <SendInput />
         </div>
       ): (
-        <div className={`flex-1 flex-col items-center justify-center bg-gray-50 p-8 ${!selectedUser ? 'hidden sm:flex' : 'flex'}`}>
+        <div className={`flex-1 flex-col items-center justify-center bg-gray-50 dark:bg-[#0a0a0a] p-8 transition-colors duration-300 ${!selectedUser ? 'hidden sm:flex' : 'flex'}`}>
           <div className="text-center max-w-md">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors">
               Welcome, {authUser?.fullName}!
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-stone-400 mb-4 transition-colors">
               Select a conversation to start messaging
             </p>
           </div>

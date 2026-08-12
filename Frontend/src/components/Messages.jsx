@@ -24,7 +24,7 @@ const Messages = () => {
   };
 
   return (
-    <div className="flex-1 p-4 overflow-auto custom-scrollbar bg-white">
+    <div className="flex-1 p-4 overflow-auto custom-scrollbar bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
       {
        messages && messages?.map((message, index) => {
           const currentDate = new Date(message.createdAt).toDateString();
@@ -35,7 +35,7 @@ const Messages = () => {
             <React.Fragment key={message._id}>
               {showDateDivider && (
                 <div className="flex justify-center my-4">
-                  <div className="bg-gray-100/80 text-gray-500 font-medium text-[11px] px-3 py-1 rounded-full border border-gray-200/50 shadow-sm uppercase tracking-wide">
+                  <div className="bg-gray-100/80 dark:bg-stone-800/80 text-gray-500 dark:text-stone-400 font-medium text-[11px] px-3 py-1 rounded-full border border-gray-200/50 dark:border-stone-700/50 shadow-sm uppercase tracking-wide transition-colors">
                     {formatDate(message.createdAt)}
                   </div>
                 </div>

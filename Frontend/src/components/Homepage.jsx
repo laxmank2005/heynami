@@ -17,7 +17,7 @@ const Homepage = () => {
   }, [dispatch]);
 
   return (
-    <div className='h-[100dvh] w-screen flex flex-col sm:flex-row bg-white overflow-hidden'>
+    <div className='h-[100dvh] w-full flex flex-col sm:flex-row bg-white dark:bg-[#0a0a0a] transition-colors duration-300 overflow-hidden'>
       <Sidebar/>
       <MessageContainer/>
     </div>

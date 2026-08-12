@@ -14,15 +14,15 @@ const Message = ({ message }) => {
   return (
     <div ref={scroll} className={`flex mb-2 ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
       <div 
-        className={`rounded-lg px-3 py-2 max-w-[75%] sm:max-w-[70%] ${
+        className={`rounded-lg px-3 py-2 max-w-[75%] sm:max-w-[70%] transition-colors duration-300 ${
           isMyMessage 
-            ? 'bg-blue-500 text-white' 
-            : 'bg-gray-200 text-gray-900'
+            ? 'bg-blue-500 dark:bg-indigo-600 text-white' 
+            : 'bg-gray-200 dark:bg-stone-800 text-gray-900 dark:text-stone-200'
         }`}
       >
         <p className="text-sm break-words">{message?.message}</p>
         <div className="flex items-center justify-end gap-1 mt-1">
-          <span className={`text-[10px] ${isMyMessage ? 'text-blue-100' : 'text-gray-600'}`}>
+          <span className={`text-[10px] transition-colors ${isMyMessage ? 'text-blue-100 dark:text-indigo-200' : 'text-gray-600 dark:text-stone-400'}`}>
             {new Date(message?.createdAt).toLocaleTimeString('en-US', { 
               hour: '2-digit', 
               minute: '2-digit',

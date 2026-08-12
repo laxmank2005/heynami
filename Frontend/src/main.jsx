@@ -12,7 +12,13 @@ createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <App />
-        <Toaster />
+        <Toaster 
+          position="bottom-center"
+          toastOptions={{
+            className: 'bg-white text-stone-900 border border-stone-200 shadow-xl dark:bg-[#111111] dark:text-white dark:border-stone-800 font-medium rounded-xl transition-colors duration-300',
+            duration: 3000,
+          }}
+        />
       </PersistGate>
     </Provider>
   </StrictMode>

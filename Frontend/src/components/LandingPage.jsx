@@ -148,15 +148,11 @@ const LandingPage = () => {
                 <ambientLight intensity={1.5} />
                 <directionalLight position={[10, 10, 5]} intensity={2} />
                 <Suspense fallback={null}>
-                  <LuffyModel 
-                    position={[0, modelY, 0]} 
-                    scale={modelScale} 
-                    rotation={[0, Math.PI + (scrollY * 0.003), 0]} 
-                  />
+                  <LuffyModel position={[0, modelY, 0]} scale={modelScale} rotation={[0, Math.PI, 0]} />
                   <Environment preset="city" />
                   <ContactShadows position={[0, modelY, 0]} opacity={0.5} scale={10} blur={2} />
                 </Suspense>
-                <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
+                <OrbitControls enableZoom={false} enablePan={false} enableRotate={true} autoRotate autoRotateSpeed={2.5} />
               </Canvas>
             </div>
           </div>
