@@ -3,6 +3,11 @@
   themes: light --default;
 }
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 /* Hide scrollbars completely but keep scrolling functionality */
 .custom-scrollbar {
   scrollbar-width: none;

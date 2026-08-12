@@ -25,14 +25,14 @@ const LandingPage = () => {
   const [scrollY, setScrollY] = useState(0);
 
   // Responsive 3D Model State
-  const [modelScale, setModelScale] = useState(window.innerWidth < 1024 ? 6.5 : 8);
-  const [modelY, setModelY] = useState(window.innerWidth < 1024 ? -0.4 : -0.5);
+  const [modelScale, setModelScale] = useState(window.innerWidth < 1024 ? 4.5 : 8);
+  const [modelY, setModelY] = useState(window.innerWidth < 1024 ? -0.2 : -0.5);
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 1024) {
-        setModelScale(6.5);
-        setModelY(-0.4);
+        setModelScale(4.5);
+        setModelY(-0.2);
       } else {
         setModelScale(8);
         setModelY(-0.5);
@@ -143,7 +143,7 @@ const LandingPage = () => {
 
           {/* Right: 3D Luffy Model */}
           <div className="relative flex justify-center lg:justify-end items-center h-full w-full mt-8 lg:mt-0">
-            <div className="w-full h-[350px] lg:h-[500px] cursor-grab active:cursor-grabbing">
+            <div className="w-full h-[350px] lg:h-[500px]">
               <Canvas camera={{ position: [0, 2, 8], fov: 45 }}>
                 <ambientLight intensity={1.5} />
                 <directionalLight position={[10, 10, 5]} intensity={2} />
@@ -152,7 +152,7 @@ const LandingPage = () => {
                   <Environment preset="city" />
                   <ContactShadows position={[0, modelY, 0]} opacity={0.5} scale={10} blur={2} />
                 </Suspense>
-                <OrbitControls enableZoom={false} autoRotate autoRotateSpeed={1.5} />
+                <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} autoRotate autoRotateSpeed={1.5} />
               </Canvas>
             </div>
           </div>
