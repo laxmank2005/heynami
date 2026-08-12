@@ -37,7 +37,7 @@ const OtherUser = ({ user }) => {
         <div className="flex justify-between items-center">
           <p className={`font-medium truncate ${user.hasUnread ? 'text-gray-900 font-bold' : 'text-gray-900'}`}>{user.fullName}</p>
           {user.hasUnread && (
-            <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ml-2">New</span>
+            <div className="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-pulse ml-2 flex-shrink-0 shadow-sm" title="New message"></div>
           )}
         </div>
         <p className={`text-xs font-medium ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>

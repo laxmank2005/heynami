@@ -3,10 +3,11 @@ import Sidebar from './Sidebar'
 import MessageContainer from './MessageContainer'
 import { useDispatch } from 'react-redux'
 import { setAuthUser } from '../redux/userSlice'
-
+import useGetRealTimeMessage from '../hooks/useGetRealTimeMessage';
 
 const Homepage = () => {
   const dispatch = useDispatch();
+  useGetRealTimeMessage();
 
   useEffect(() => {
     const storedUser = localStorage.getItem("authUser");
