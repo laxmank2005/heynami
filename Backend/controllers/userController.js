@@ -5,8 +5,8 @@ import jwt from "jsonwebtoken";
 // register testing done
 export const register = async (req, res) => {
   try {
-    const { fullName, username, password, confirmPassword, gender } = req.body;
-    if (!fullName || !username || !password || !confirmPassword || !gender) {
+    const { fullName, email, mobile, password, confirmPassword, gender } = req.body;
+    if (!fullName || !email || !mobile || !password || !confirmPassword || !gender) {
       return res.status(400).json({ message: "All fields are required" });
     }
     if (password !== confirmPassword) {
@@ -14,29 +14,41 @@ export const register = async (req, res) => {
         .status(400)
         .json({ message: "Password and confirm password should be same" });
     }
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ $or: [{ email }, { mobile }] });
     if (user) {
       return res
         .status(400)
-        .json({ message: "username already exist try different" });
+        .json({ message: "Email or mobile number already exists, try different" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    //Profile photo generation based on gender and username api
-    const maleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`;
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins expiry
 
-    const femaleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`;
+    // Mock sending email
+    console.log(`[MOCK EMAIL] To: ${email}, Your OTP for registration is: ${otp}`);
+
+    //Profile photo generation based on gender and email api
+    const maleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${email}`;
+    const femaleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${email}`;
 
     await User.create({
       fullName,
-      username,
+      email,
+      mobile,
       password: hashedPassword,
       profilePhoto: gender === "male" ? maleProfilePhoto : femaleProfilePhoto,
-      gender
+      gender,
+      isEmailVerified: false,
+      otp,
+      otpExpiry
     });
     return res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "OTP sent to your email. Please verify to complete registration.",
+      otp, // provided for dev/local testing
+      email,
     });
   } catch (error) {
     console.error(error);
@@ -46,26 +58,116 @@ export const register = async (req, res) => {
   }
 };
 
+// Verify OTP controller
+export const verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email is already verified. You can log in directly." });
+    }
+
+    if (!user.otp || !user.otpExpiry) {
+      return res.status(400).json({ message: "No active OTP found. Please request a new one." });
+    }
+
+    if (new Date() > new Date(user.otpExpiry)) {
+      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+    }
+
+    if (user.otp.trim() !== otp.toString().trim()) {
+      return res.status(400).json({ message: "Invalid OTP. Please check and try again." });
+    }
+
+    user.isEmailVerified = true;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully! You can now log in.",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// Resend OTP controller
+export const resendOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email is already verified." });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    user.otp = otp;
+    user.otpExpiry = otpExpiry;
+    await user.save();
+
+    console.log(`[MOCK EMAIL RESEND] To: ${email}, Your new OTP is: ${otp}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "A new verification code has been sent to your email.",
+      otp, // provided for dev/local testing
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 // Login controller
 export const login = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) {
+    const { email, password } = req.body;
+    if (!email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const user = await User.findOne({ username });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
-        message: "Invalid username or password",
+        message: "Invalid email or password",
         success: false,
       });
     }
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
       return res.status(400).json({
-        message: "Invalid username or password",
+        message: "Invalid email or password",
         success: false,
+      });
+    }
+
+    if (!user.isEmailVerified) {
+      return res.status(400).json({
+        message: "Please verify your email before logging in.",
+        success: false,
+        notVerified: true,
+        email: user.email,
       });
     }
 
@@ -90,7 +192,8 @@ export const login = async (req, res) => {
         message: "Login successful",
         _id: user._id,
         fullName: user.fullName,
-        username: user.username,
+        email: user.email,
+        mobile: user.mobile,
         profilePhoto: user.profilePhoto,
         token: token,
       });

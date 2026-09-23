@@ -2,10 +2,27 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedUser, clearUnread } from "../redux/userSlice";
 
+/* Returns initials for avatar fallback */
+const getInitials = (name = "") =>
+  name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+/* Deterministic but pleasant color based on name */
+const avatarColors = [
+  "#7C3AED","#6D28D9","#5B21B6","#4C1D95",
+  "#2563EB","#1D4ED8","#DB2777","#B91C1C",
+  "#059669","#047857","#D97706","#B45309",
+];
+const colorFor = (name = "") => {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+};
+
 const OtherUser = ({ user }) => {
   const dispatch = useDispatch();
-  const {selectedUser,onlineUsers}=useSelector(store=>store.user);
-  const isOnline=onlineUsers?.includes(user._id);
+  const { selectedUser, onlineUsers } = useSelector(store => store.user);
+  const isOnline = onlineUsers?.includes(user._id);
+  const isSelected = selectedUser?._id === user._id;
 
   const selectedUserHandler = () => {
     dispatch(setSelectedUser(user));
@@ -15,35 +32,63 @@ const OtherUser = ({ user }) => {
   return (
     <div
       onClick={selectedUserHandler}
-      className={`flex items-center gap-3 p-3 cursor-pointer transition-all duration-200 border-b border-gray-100 dark:border-stone-800
-        ${
-          selectedUser?._id === user?._id
-            ? "bg-blue-50 dark:bg-indigo-900/30 border-l-4 border-l-blue-500 dark:border-l-indigo-500"
-            : "hover:bg-gray-50 dark:hover:bg-[#1a1a1a]"
-        }`}
+      className="relative flex items-center gap-3 px-4 py-3 cursor-pointer transition-all duration-150 select-none"
+      style={{
+        background: isSelected
+          ? 'linear-gradient(90deg, rgba(124,58,237,0.08) 0%, rgba(124,58,237,0.04) 100%)'
+          : undefined,
+        borderLeft: isSelected ? '3px solid #7C3AED' : '3px solid transparent',
+      }}
     >
-      <div className="relative">
-        <img 
-          src={user.profilePhoto} 
-          alt={user.fullName}
-          className="w-12 h-12 rounded-full border border-transparent dark:border-stone-700"
-        />
+      {/* Hover bg via CSS */}
+      <div className="absolute inset-0 hover:bg-gray-50 dark:hover:bg-stone-900/60 transition-colors" style={{ pointerEvents: 'none', borderRadius: 0 }} />
+
+      {/* Avatar */}
+      <div className="relative flex-shrink-0">
+        {user.profilePhoto ? (
+          <img
+            src={user.profilePhoto}
+            alt={user.fullName}
+            className="w-12 h-12 rounded-full object-cover"
+            style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.10)' }}
+          />
+        ) : (
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm"
+            style={{ background: colorFor(user.fullName) }}
+          >
+            {getInitials(user.fullName)}
+          </div>
+        )}
+        {/* Online dot */}
         {isOnline && (
-          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-[#111111] rounded-full"></span>
+          <span className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 border-2 border-white dark:border-[#111] rounded-full" />
         )}
       </div>
 
-      <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex justify-between items-center">
-          <p className={`font-medium truncate transition-colors ${user.hasUnread ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-900 dark:text-stone-300'}`}>{user.fullName}</p>
-          {user.hasUnread && (
-            <div className="w-2.5 h-2.5 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-pulse ml-2 flex-shrink-0 shadow-sm" title="New message"></div>
-          )}
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <p
+            className="text-sm font-semibold text-gray-900 dark:text-white truncate"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+          >
+            {user.fullName}
+          </p>
         </div>
-        <p className={`text-xs font-medium transition-colors ${isOnline ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-stone-500'}`}>
-          {isOnline ? 'Online' : 'Offline'}
+        <p className="text-xs text-gray-400 dark:text-stone-500 truncate mt-0.5">
+          {isOnline ? (
+            <span className="text-emerald-500 font-medium">Online</span>
+          ) : 'Offline'}
         </p>
       </div>
+
+      {/* Unread badge */}
+      {user.hasUnread && (
+        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center">
+          <span className="text-[10px] text-white font-bold">!</span>
+        </div>
+      )}
     </div>
   );
 };

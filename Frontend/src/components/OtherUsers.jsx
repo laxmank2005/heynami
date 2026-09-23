@@ -10,17 +10,28 @@ const OtherUsers = ({ search }) => {
   if (!otherUsers) return null;
 
   const filteredUsers = search
-    ? otherUsers.filter((user) => user.fullName.toLowerCase().includes(search.toLowerCase()))
+    ? otherUsers.filter((user) =>
+        user.fullName.toLowerCase().includes(search.toLowerCase()) ||
+        user.mobile?.includes(search)
+      )
     : otherUsers;
 
   return (
-    <div className="flex flex-col gap-2 overflow-y-auto custom-scrollbar flex-1">
+    <div className="flex flex-col">
       {filteredUsers.length > 0 ? (
-        filteredUsers.map((user) => (
-          <OtherUser key={user._id} user={user} />
-        ))
+        <>
+          <p className="px-5 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-stone-500"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+            All Messages
+          </p>
+          {filteredUsers.map((user) => (
+            <OtherUser key={user._id} user={user} />
+          ))}
+        </>
       ) : (
-        <div className="text-center text-gray-500 mt-4 text-sm">No users found</div>
+        <div className="text-center py-8 text-sm text-gray-400 dark:text-stone-500">
+          No conversations found
+        </div>
       )}
     </div>
   );

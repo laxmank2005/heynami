@@ -5,9 +5,15 @@ const userModel=new mongoose.Schema({
         type:String,
         required:true
     },
-    username :{
+    email :{
         type:String,
-        required:true
+        required:true,
+        unique:true
+    },
+    mobile :{
+        type:String,
+        required:true,
+        unique:true
     },
     password :{
         type:String,
@@ -21,6 +27,16 @@ const userModel=new mongoose.Schema({
     profilePhoto :{
         type:String,
         default:""
+    },
+    isEmailVerified :{
+        type:Boolean,
+        default:false
+    },
+    otp :{
+        type:String
+    },
+    otpExpiry :{
+        type:Date
     }
 
 },{timestamps:true});

@@ -1,50 +1,62 @@
-import React from 'react';
-import Message from './Message';
-import useGetMessages from '../hooks/useGetMessages';
-import { useSelector } from 'react-redux';
+import React from "react";
+import Message from "./Message";
+import useGetMessages from "../hooks/useGetMessages";
+import { useSelector } from "react-redux";
 
 const Messages = () => {
   useGetMessages();
   const { messages } = useSelector((store) => store.message);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
+  const formatDateLabel = (dateString) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
+    if (date.toDateString() === today.toDateString()) return "Today";
+    if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+    return date.toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
   };
 
   return (
-    <div className="flex-1 p-4 overflow-auto custom-scrollbar bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
-      {
-       messages && messages?.map((message, index) => {
+    <div
+      className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 bg-white dark:bg-[#0d0d0d] transition-colors duration-300"
+    >
+      {messages && messages.length > 0 ? (
+        messages.map((message, index) => {
           const currentDate = new Date(message.createdAt).toDateString();
-          const previousDate = index > 0 ? new Date(messages[index - 1].createdAt).toDateString() : null;
-          const showDateDivider = currentDate !== previousDate;
+          const previousDate =
+            index > 0
+              ? new Date(messages[index - 1].createdAt).toDateString()
+              : null;
+          const showDivider = currentDate !== previousDate;
 
           return (
             <React.Fragment key={message._id}>
-              {showDateDivider && (
-                <div className="flex justify-center my-4">
-                  <div className="bg-gray-100/80 dark:bg-stone-800/80 text-gray-500 dark:text-stone-400 font-medium text-[11px] px-3 py-1 rounded-full border border-gray-200/50 dark:border-stone-700/50 shadow-sm uppercase tracking-wide transition-colors">
-                    {formatDate(message.createdAt)}
-                  </div>
+              {showDivider && (
+                <div className="flex items-center gap-4 my-5">
+                  <div className="flex-1 h-px bg-gray-100 dark:bg-stone-800" />
+                  <span
+                    className="text-[11px] font-semibold text-gray-400 dark:text-stone-500 whitespace-nowrap"
+                    style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                  >
+                    {formatDateLabel(message.createdAt)}
+                  </span>
+                  <div className="flex-1 h-px bg-gray-100 dark:bg-stone-800" />
                 </div>
               )}
               <Message message={message} />
             </React.Fragment>
-          )
+          );
         })
-      }
+      ) : (
+        <div className="h-full flex items-center justify-center">
+          <p className="text-sm text-gray-300 dark:text-stone-600"
+            style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+            No messages yet — say hello! 👋
+          </p>
+        </div>
+      )}
     </div>
   );
 };

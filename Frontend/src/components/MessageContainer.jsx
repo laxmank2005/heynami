@@ -1,73 +1,115 @@
-import React, { useEffect } from "react";
+import React from "react";
 import SendInput from "./SendInput";
 import Messages from "./Messages";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedUser } from "../redux/userSlice";
-import { BsThreeDotsVertical } from "react-icons/bs";
-import { IoArrowBack } from "react-icons/io5";
 
 const MessageContainer = () => {
-  const { selectedUser,authUser,onlineUsers } = useSelector((store) => store.user);
+  const { selectedUser, authUser, onlineUsers } = useSelector((store) => store.user);
   const dispatch = useDispatch();
   const isOnline = onlineUsers?.includes(selectedUser?._id) || false;
 
+  /* Initials avatar fallback */
+  const getInitials = (name = "") =>
+    name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  if (!selectedUser) {
+    return (
+      <div className="flex-1 hidden sm:flex flex-col items-center justify-center bg-gray-50 dark:bg-[#0d0d0d] transition-colors">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-2xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center mx-auto mb-4">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            </svg>
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-1"
+            style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+            Welcome back, {authUser?.fullName?.split(' ')[0]}!
+          </h2>
+          <p className="text-sm text-gray-400 dark:text-stone-500">
+            Pick a conversation to start chatting
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <>
-    {
-      selectedUser !== null ? (
-        <div className={`flex-1 flex-col bg-white dark:bg-[#0a0a0a] h-full transition-colors duration-300 ${selectedUser ? 'flex' : 'hidden sm:flex'}`}>
-          {/* Chat Header */}
-          <div className="bg-white dark:bg-[#111111] border-b border-gray-200 dark:border-stone-800 px-4 py-3 flex items-center justify-between transition-colors duration-300">
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => dispatch(setSelectedUser(null))}
-                className="sm:hidden text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-800 p-2 rounded-lg transition"
-              >
-                <IoArrowBack className="h-5 w-5" />
-              </button>
-              
-              <div className="relative">
-                <img 
-                  src={selectedUser?.profilePhoto} 
-                  alt={selectedUser?.fullName}
-                  className="w-10 h-10 rounded-full border-2 border-transparent dark:border-stone-800"
-                />
-                {isOnline && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-[#111111] rounded-full"></span>
-                )}
+    <div
+      className={`flex-1 flex flex-col bg-white dark:bg-[#0d0d0d] h-full transition-colors duration-300 ${selectedUser ? 'flex' : 'hidden sm:flex'}`}
+      style={{ minWidth: 0 }}
+    >
+      {/* ── Chat Header ── */}
+      <div
+        className="flex items-center justify-between px-6 py-4 bg-white dark:bg-[#111] border-b border-gray-100 dark:border-stone-800 transition-colors"
+        style={{ minHeight: '68px' }}
+      >
+        <div className="flex items-center gap-3">
+          {/* Back button (mobile) */}
+          <button
+            onClick={() => dispatch(setSelectedUser(null))}
+            className="sm:hidden p-2 -ml-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-stone-800 transition"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </button>
+
+          {/* Avatar */}
+          <div className="relative">
+            {selectedUser?.profilePhoto ? (
+              <img
+                src={selectedUser.profilePhoto}
+                alt={selectedUser.fullName}
+                className="w-10 h-10 rounded-full object-cover"
+                style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.1)' }}
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-violet-500 flex items-center justify-center text-white font-bold text-sm">
+                {getInitials(selectedUser?.fullName)}
               </div>
-              
-              <div>
-                <h3 className="text-gray-900 dark:text-white font-semibold transition-colors">{selectedUser?.fullName}</h3>
-                <p className="text-xs text-gray-500 dark:text-stone-400 transition-colors">{isOnline ? 'Online' : 'Offline'}</p>
-              </div>
-            </div>
-            
-            <button className="text-gray-600 dark:text-stone-400 hover:bg-gray-100 dark:hover:bg-stone-800 p-2 rounded-lg transition">
-              <BsThreeDotsVertical className="h-5 w-5" />
-            </button>
+            )}
+            {isOnline && (
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-white dark:border-[#111] rounded-full" />
+            )}
           </div>
 
-          {/* Messages Area */}
-          <Messages />
-
-          {/* Send Input */}
-          <SendInput />
-        </div>
-      ): (
-        <div className={`flex-1 flex-col items-center justify-center bg-gray-50 dark:bg-[#0a0a0a] p-8 transition-colors duration-300 ${!selectedUser ? 'hidden sm:flex' : 'flex'}`}>
-          <div className="text-center max-w-md">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 transition-colors">
-              Welcome, {authUser?.fullName}!
-            </h1>
-            <p className="text-gray-600 dark:text-stone-400 mb-4 transition-colors">
-              Select a conversation to start messaging
+          {/* Name & status */}
+          <div>
+            <h3
+              className="text-sm font-bold text-gray-900 dark:text-white leading-tight"
+              style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
+            >
+              {selectedUser?.fullName}
+            </h3>
+            <p className="text-xs mt-0.5"
+              style={{ color: isOnline ? '#10b981' : '#9ca3af' }}>
+              {isOnline ? 'Online' : 'Offline'}
             </p>
           </div>
         </div>
-      )
-    }
-    </>
+
+        {/* Right actions */}
+        <div className="flex items-center gap-1">
+          <button className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-800 transition">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+          <button className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-800 transition">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* ── Messages Area ── */}
+      <Messages />
+
+      {/* ── Input ── */}
+      <SendInput />
+    </div>
   );
 };
 
