@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setReplyingTo, setEditingMessage, updateMessageReactions, updateMessage } from "../redux/messageSlice";
 import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
-import { BsReplyFill, BsPencilSquare, BsTrashFill, BsEmojiSmile } from "react-icons/bs";
+import { BsReplyFill, BsPencilSquare, BsTrashFill, BsEmojiSmile, BsCheck2All, BsCheck2 } from "react-icons/bs";
 
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
 
@@ -201,21 +201,13 @@ const Message = ({ message }) => {
                 )}
 
                 {isMyMessage && !message.isDeleted && (
-                  <span className="flex-shrink-0 mb-0.5 ml-1">
+                  <span className="flex-shrink-0 mb-0.5 ml-1 flex items-center justify-center">
                     {message?.status === "read" ? (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                        <polyline points="22 6 11 17" />
-                      </svg>
+                      <BsCheck2All className="text-blue-300 text-[16px] drop-shadow-sm" />
                     ) : message?.status === "delivered" ? (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                        <polyline points="22 6 11 17" />
-                      </svg>
+                      <BsCheck2All className="text-white/70 text-[16px]" />
                     ) : (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
+                      <BsCheck2 className="text-white/70 text-[16px]" />
                     )}
                   </span>
                 )}

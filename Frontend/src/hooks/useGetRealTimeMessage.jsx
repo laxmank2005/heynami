@@ -68,6 +68,17 @@ const useGetRealTimeMessage = () => {
             // Add to message list only if this conversation is open
             if (isCurrentlySelected) {
                 dispatch(addMessage(finalMessage));
+                
+                // Real-time Read Receipt: The user is looking at the chat right now, so mark this message as read!
+                try {
+                    const authUser = JSON.parse(localStorage.getItem("authUser"));
+                    fetch(API_ENDPOINTS.MESSAGE.MARK_READ(senderIdStr), {
+                        method: "PUT",
+                        headers: { Authorization: `Bearer ${authUser?.token}` }
+                    });
+                } catch (err) {
+                    console.error("Failed to emit real-time read receipt");
+                }
             }
             
             // Always update sidebar: bump to top, show last message, unread badge
