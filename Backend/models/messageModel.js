@@ -18,6 +18,11 @@ const messageModel = new mongoose.Schema({
     isEncrypted: {
         type: Boolean,
         default: false
+    },
+    status: {
+        type: String,
+        enum: ["sent", "delivered", "read"],
+        default: "sent"
     }
 }, {
     timestamps: true

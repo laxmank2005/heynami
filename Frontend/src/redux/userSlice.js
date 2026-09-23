@@ -5,8 +5,8 @@ const userSlice = createSlice({
   initialState: {
     authUser: localStorage.getItem("authUser") ? JSON.parse(localStorage.getItem("authUser")) : null,
     otherUsers: [],
-    selectedUser:null,
-    onlineUsers:[],
+    selectedUser: null,
+    onlineUsers: [],
   },
   reducers: {
     setAuthUser: (state, action) => {
@@ -22,12 +22,17 @@ const userSlice = createSlice({
       state.selectedUser = action.payload;
     },
     updateUserList: (state, action) => {
-      const { userId, isUnread } = action.payload;
+      const { userId, isUnread, lastMessage, lastMessageTime } = action.payload;
       const userIndex = state.otherUsers.findIndex((u) => u._id === userId);
       if (userIndex !== -1) {
         const [user] = state.otherUsers.splice(userIndex, 1);
         if (isUnread) {
+          user.unreadCount = (user.unreadCount || 0) + 1;
           user.hasUnread = true;
+        }
+        if (lastMessage !== undefined) {
+          user.lastMessage = lastMessage;
+          user.lastMessageTime = lastMessageTime || new Date().toISOString();
         }
         state.otherUsers.unshift(user);
       }
@@ -36,6 +41,7 @@ const userSlice = createSlice({
       const user = state.otherUsers.find((u) => u._id === action.payload);
       if (user) {
         user.hasUnread = false;
+        user.unreadCount = 0;
       }
     },
   },
@@ -43,4 +49,4 @@ const userSlice = createSlice({
 
 export const { setAuthUser, setOtherUsers, setSelectedUser, setOnlineUsers, updateUserList, clearUnread } = userSlice.actions;
 
-export default userSlice.reducer;
+export default userSlice.reducer;

@@ -8,13 +8,32 @@ import { sendOTPEmail } from "../config/emailService.js";
 export const register = async (req, res) => {
   try {
     const { fullName, email, mobile, password, confirmPassword, gender, publicKey, encryptedPrivateKey, keySalt, keyIv } = req.body;
+    
     if (!fullName || !email || !mobile || !password || !confirmPassword || !gender) {
       return res.status(400).json({ message: "All base fields are required" });
     }
+
+    const nameRegex = /^[A-Za-z\s]{3,50}$/;
+    if (!nameRegex.test(fullName.trim())) {
+      return res.status(400).json({ message: "Full name must be 3-50 characters and contain only letters." });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ message: "Please enter a valid email address." });
+    }
+
+    const mobileRegex = /^\+\d{1,3}\d{10}$/;
+    if (!mobileRegex.test(mobile)) {
+      return res.status(400).json({ message: "Invalid mobile number format. Must include country code and 10 digits." });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long." });
+    }
+
     if (password !== confirmPassword) {
-      return res
-        .status(400)
-        .json({ message: "Password and confirm password should be same" });
+      return res.status(400).json({ message: "Password and confirm password should be same" });
     }
     const user = await User.findOne({ $or: [{ email }, { mobile }] });
     if (user) {
@@ -289,12 +308,12 @@ export const searchUsers = async (req, res) => {
 
     const trimmedQuery = query.trim();
 
-    // Search by exact mobile match OR partial email match (case-insensitive)
+    // Search by mobile (suffix match so country code isn't strictly required) OR partial email match
     const users = await User.find({
       _id: { $ne: loggedInUserId },
       isEmailVerified: true,
       $or: [
-        { mobile: trimmedQuery },
+        { mobile: { $regex: trimmedQuery + "$", $options: "i" } },
         { email: { $regex: trimmedQuery, $options: "i" } },
       ],
     })

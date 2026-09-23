@@ -109,48 +109,45 @@ const Login = () => {
     <div className="min-h-screen flex flex-col font-[Inter,system-ui,sans-serif] bg-gray-50 dark:bg-[#0d0d0d] transition-colors duration-300">
 
       {/* ── Top Navigation (Back to Home & Theme Toggle) ── */}
-      <div className="w-full p-6 flex justify-between items-center z-50">
+      <div className="w-full px-5 py-4 sm:p-6 flex justify-between items-center z-50 absolute top-0 left-0">
         <Link 
           to="/" 
-          className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-stone-400 dark:hover:text-white transition-colors bg-white/50 dark:bg-[#111]/50 backdrop-blur-md px-4 py-2.5 rounded-xl border border-gray-200/50 dark:border-stone-800"
+          className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-stone-400 dark:hover:text-white transition-colors bg-white/50 dark:bg-[#111]/50 backdrop-blur-md px-3.5 py-2 rounded-xl border border-gray-200/50 dark:border-stone-800"
         >
           <BsArrowLeft className="text-lg" />
-          Back to home
+          <span className="hidden sm:inline">Back to home</span>
         </Link>
         <ThemeToggle />
       </div>
 
       {/* ── Right: Login Form ── */}
-      <div className="flex-1 flex items-center justify-center relative overflow-hidden py-10 sm:py-0">
+      <div className="flex-1 flex items-center justify-center relative overflow-hidden pt-24 pb-8 sm:py-0">
         {/* Subtle background blob */}
         <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-violet-100/50 dark:bg-violet-900/20 blur-[100px] -z-0" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-violet-100/40 dark:bg-violet-900/20 blur-[80px] -z-0" />
 
-        <div className="w-full max-w-md relative z-10 px-6 sm:px-0">
-          {/* Mobile logo — only shows on smaller screens */}
-          <div className="lg:hidden flex items-center justify-center gap-2.5 mb-8">
-            <Link to="/" className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-violet-600 flex items-center justify-center shadow-md">
-                <BsChatDotsFill className="text-white text-base" />
+        <div className="w-full max-w-md relative z-10 px-5 sm:px-0">
+          
+          {/* Header */}
+          <div className="mb-6 mt-0 text-center sm:text-left flex flex-col items-center sm:items-start">
+            <Link to="/" className="inline-flex items-center gap-2 mb-5 lg:hidden">
+              <div className="w-10 h-10 rounded-[14px] bg-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                <BsChatDotsFill className="text-white text-lg" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white tracking-tight transition-colors">
+              <span className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight transition-colors">
                 Ping<span className="text-violet-600">.</span>
               </span>
             </Link>
-          </div>
-
-          {/* Header */}
-          <div className="mb-8 mt-10 sm:mt-0 text-center sm:text-left">
-            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2 transition-colors">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2 transition-colors">
               Welcome back
             </h1>
-            <p className="text-gray-500 dark:text-stone-400 text-sm transition-colors">
+            <p className="text-gray-500 dark:text-stone-400 text-[15px] sm:text-sm transition-colors">
               Sign in to your account to continue your conversations.
             </p>
           </div>
 
           {/* Form Card */}
-          <div className="bg-white dark:bg-[#111] rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-gray-100 dark:border-stone-800 p-8 transition-colors">
+          <div className="bg-white dark:bg-[#111] rounded-[24px] shadow-sm sm:shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 dark:border-stone-800 p-6 sm:p-8 transition-colors">
             <form onSubmit={onSubmithHandler} className="space-y-5">
               {/* Email Input */}
               <div>

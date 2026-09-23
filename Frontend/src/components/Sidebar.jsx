@@ -87,7 +87,7 @@ const Sidebar = () => {
 
             {/* Popup Menu */}
             {isProfileMenuOpen && (
-              <div className="absolute top-[110%] right-0 min-w-[240px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-stone-800 rounded-2xl shadow-xl p-3 z-50 animate-in fade-in zoom-in-95 duration-200">
+              <div className="absolute top-full mt-2 right-0 sm:right-0 -mr-2 sm:mr-0 min-w-[240px] bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-stone-800 rounded-[20px] shadow-xl p-3 z-50 animate-in fade-in zoom-in-95 duration-200">
                 
                 {/* Profile Info inside Menu */}
                 <div className="flex items-center gap-3 mb-3 px-2">
@@ -132,20 +132,20 @@ const Sidebar = () => {
 
         {/* ── Search (filters existing conversations) ── */}
         <div className="px-5 pb-5">
-          <div className="relative group">
+          <div className="relative group flex items-center">
+            <div className="absolute left-4 text-gray-400 group-focus-within:text-violet-500 transition-colors pointer-events-none">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               type="text"
               placeholder="Search conversations"
-              className="w-full pl-5 pr-11 py-3 text-sm rounded-xl bg-gray-50 dark:bg-stone-900/60 border border-gray-200 dark:border-stone-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-stone-500 outline-none focus:border-violet-400 dark:focus:border-violet-500 focus:bg-white dark:focus:bg-stone-900 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/20 transition-all duration-200"
+              className="w-full pl-11 pr-4 py-3 text-[15px] sm:text-sm rounded-[16px] bg-gray-50 dark:bg-stone-900/60 border border-gray-200 dark:border-stone-700 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-stone-500 outline-none focus:border-violet-400 dark:focus:border-violet-500 focus:bg-white dark:focus:bg-stone-900 focus:ring-4 focus:ring-violet-50 dark:focus:ring-violet-900/20 transition-all duration-200 shadow-sm"
               style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
             />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-violet-500 transition-colors">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-            </div>
           </div>
         </div>
 

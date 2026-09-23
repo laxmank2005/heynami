@@ -1,17 +1,60 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import SendInput from "./SendInput";
 import Messages from "./Messages";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedUser } from "../redux/userSlice";
+import { clearUnread } from "../redux/userSlice";
+import { API_ENDPOINTS } from "../config/api";
 
 const MessageContainer = () => {
   const { selectedUser, authUser, onlineUsers } = useSelector((store) => store.user);
+  const { socket } = useSelector(store => store.socket);
   const dispatch = useDispatch();
   const isOnline = onlineUsers?.includes(selectedUser?._id) || false;
+  const [isTyping, setIsTyping] = useState(false);
 
   /* Initials avatar fallback */
   const getInitials = (name = "") =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  // Mark messages as read when this conversation is opened
+  useEffect(() => {
+    if (!selectedUser?._id) return;
+
+    const markRead = async () => {
+      try {
+        const authUserData = JSON.parse(localStorage.getItem("authUser"));
+        await fetch(API_ENDPOINTS.MESSAGE.MARK_READ(selectedUser._id), {
+          method: "PUT",
+          credentials: "include",
+          headers: { Authorization: `Bearer ${authUserData?.token}` },
+        });
+        dispatch(clearUnread(selectedUser._id));
+      } catch (e) {
+        console.error("Failed to mark messages as read:", e);
+      }
+    };
+    markRead();
+  }, [selectedUser?._id, dispatch]);
+
+  // Listen for typing indicator from the selected user
+  useEffect(() => {
+    if (!socket || !selectedUser) return;
+
+    const handleTyping = ({ senderId }) => {
+      if (senderId === selectedUser._id) setIsTyping(true);
+    };
+    const handleStopTyping = ({ senderId }) => {
+      if (senderId === selectedUser._id) setIsTyping(false);
+    };
+
+    socket.on("typing", handleTyping);
+    socket.on("stopTyping", handleStopTyping);
+    return () => {
+      socket.off("typing", handleTyping);
+      socket.off("stopTyping", handleStopTyping);
+    };
+  }, [socket, selectedUser]);
 
   if (!selectedUser) {
     return (
@@ -41,16 +84,17 @@ const MessageContainer = () => {
     >
       {/* ── Chat Header ── */}
       <div
-        className="flex items-center justify-between px-6 py-4 bg-white dark:bg-[#111] border-b border-gray-100 dark:border-stone-800 transition-colors"
+        className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white dark:bg-[#111] border-b border-gray-100 dark:border-stone-800 transition-colors"
         style={{ minHeight: '68px' }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Back button (mobile) */}
           <button
             onClick={() => dispatch(setSelectedUser(null))}
-            className="sm:hidden p-2 -ml-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-stone-800 transition"
+            className="sm:hidden p-2.5 -ml-2 rounded-xl text-gray-500 hover:bg-gray-100 dark:hover:bg-stone-800 transition active:scale-95"
+            aria-label="Back to messages"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6"/>
             </svg>
           </button>
@@ -74,7 +118,7 @@ const MessageContainer = () => {
             )}
           </div>
 
-          {/* Name & status */}
+          {/* Name & status / typing indicator */}
           <div>
             <h3
               className="text-sm font-bold text-gray-900 dark:text-white leading-tight"
@@ -82,10 +126,24 @@ const MessageContainer = () => {
             >
               {selectedUser?.fullName}
             </h3>
-            <p className="text-xs mt-0.5"
-              style={{ color: isOnline ? '#10b981' : '#9ca3af' }}>
-              {isOnline ? 'Online' : 'Offline'}
-            </p>
+            {isTyping ? (
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="text-xs text-violet-500 font-medium">typing</span>
+                <span className="flex gap-0.5">
+                  {[0, 1, 2].map(i => (
+                    <span
+                      key={i}
+                      className="w-1 h-1 rounded-full bg-violet-500 animate-bounce"
+                      style={{ animationDelay: `${i * 0.15}s` }}
+                    />
+                  ))}
+                </span>
+              </div>
+            ) : (
+              <p className="text-xs mt-0.5" style={{ color: isOnline ? '#10b981' : '#9ca3af' }}>
+                {isOnline ? 'Online' : 'Offline'}
+              </p>
+            )}
           </div>
         </div>
 
@@ -114,3 +172,4 @@ const MessageContainer = () => {
 };
 
 export default MessageContainer;
+

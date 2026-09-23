@@ -32,7 +32,7 @@ const OtherUser = ({ user }) => {
   return (
     <div
       onClick={selectedUserHandler}
-      className="relative flex items-center gap-3 px-4 py-3 cursor-pointer transition-all duration-150 select-none"
+      className="relative flex items-center gap-3 px-4 py-3.5 sm:py-3 cursor-pointer transition-all duration-150 select-none"
       style={{
         background: isSelected
           ? 'linear-gradient(90deg, rgba(124,58,237,0.08) 0%, rgba(124,58,237,0.04) 100%)'
@@ -75,18 +75,27 @@ const OtherUser = ({ user }) => {
           >
             {user.fullName}
           </p>
+          {user.lastMessageTime && (
+            <span className="text-[10px] text-gray-400 dark:text-stone-500 flex-shrink-0">
+              {new Date(user.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
         </div>
-        <p className="text-xs text-gray-400 dark:text-stone-500 truncate mt-0.5">
-          {isOnline ? (
+        <p className={`text-xs truncate mt-0.5 ${user.hasUnread ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-400 dark:text-stone-500'}`}>
+          {user.lastMessage ? (
+            user.lastMessage
+          ) : isOnline ? (
             <span className="text-emerald-500 font-medium">Online</span>
-          ) : 'Offline'}
+          ) : (
+            'Offline'
+          )}
         </p>
       </div>
 
       {/* Unread badge */}
       {user.hasUnread && (
         <div className="flex-shrink-0 w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center">
-          <span className="text-[10px] text-white font-bold">!</span>
+          <span className="text-[10px] text-white font-bold">{user.unreadCount || '!'}</span>
         </div>
       )}
     </div>

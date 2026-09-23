@@ -56,6 +56,25 @@ io.on('connection', (socket) => {
 
     io.emit('getOnlineUsers', Object.keys(userSocketMap));
 
+    // Typing indicator events
+    socket.on('typing', ({ receiverId }) => {
+        const receiverSockets = userSocketMap[receiverId];
+        if (receiverSockets && receiverSockets.length > 0) {
+            receiverSockets.forEach(socketId => {
+                io.to(socketId).emit('typing', { senderId: userId });
+            });
+        }
+    });
+
+    socket.on('stopTyping', ({ receiverId }) => {
+        const receiverSockets = userSocketMap[receiverId];
+        if (receiverSockets && receiverSockets.length > 0) {
+            receiverSockets.forEach(socketId => {
+                io.to(socketId).emit('stopTyping', { senderId: userId });
+            });
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log('user disconnected', socket.id);
         if (userId && userSocketMap[userId]) {

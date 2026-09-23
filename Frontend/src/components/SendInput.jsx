@@ -16,9 +16,11 @@ const SendInput = () => {
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const inputRef = useRef();
+  const typingTimeoutRef = useRef(null);
   const dispatch = useDispatch();
   const { selectedUser, authUser } = useSelector(store => store.user);
   const { messages } = useSelector(store => store.message);
+  const { socket } = useSelector(store => store.socket);
 
   const onSubmitHandler = async (e) => {
     e.preventDefault();
@@ -86,7 +88,13 @@ const SendInput = () => {
       realMessage.message = text; 
 
       dispatch(setMessages([...updated, realMessage]));
-      dispatch(updateUserList({ userId: selectedUser._id, isUnread: false }));
+      // Update sidebar last message preview
+      dispatch(updateUserList({
+        userId: selectedUser._id,
+        isUnread: false,
+        lastMessage: text,
+        lastMessageTime: realMessage.createdAt || new Date().toISOString(),
+      }));
     } catch {
       dispatch(setMessages(messages || []));
       toast.error("Failed to send message");
@@ -102,10 +110,25 @@ const SendInput = () => {
     }
   };
 
+  // Emit typing indicator to the selected user via socket
+  const handleInputChange = (e) => {
+    setMessage(e.target.value);
+    if (!socket || !selectedUser) return;
+
+    // Emit typing event
+    socket.emit("typing", { receiverId: selectedUser._id });
+
+    // Clear existing stop-typing timer and reset it
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", { receiverId: selectedUser._id });
+    }, 2000);
+  };
+
   return (
     <form
       onSubmit={onSubmitHandler}
-      className="px-5 py-4 bg-white dark:bg-[#111] border-t border-gray-100 dark:border-stone-800 transition-colors"
+      className="px-4 sm:px-5 py-4 pb-6 sm:pb-4 bg-white dark:bg-[#111] border-t border-gray-100 dark:border-stone-800 transition-colors"
     >
       <div
         className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-gray-50 dark:bg-stone-900 border border-gray-200 dark:border-stone-700 focus-within:border-violet-400 dark:focus-within:border-violet-500 focus-within:ring-2 focus-within:ring-violet-100 dark:focus-within:ring-violet-900/30 transition-all"
@@ -127,7 +150,7 @@ const SendInput = () => {
         <input
           ref={inputRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           type="text"
           placeholder={`Chat with ${selectedUser?.fullName?.split(" ")[0] || "..."}` }

@@ -72,7 +72,7 @@ const Message = ({ message }) => {
 
         {/* Bubble */}
         <div
-          className={`px-4 py-2.5 text-sm break-words leading-relaxed ${
+          className={`relative px-4 py-2.5 text-sm break-words leading-relaxed ${
             isMyMessage
               ? "text-white rounded-2xl rounded-br-sm"
               : "text-gray-800 dark:text-stone-100 bg-gray-50 dark:bg-stone-800/80 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-stone-700"
@@ -89,7 +89,28 @@ const Message = ({ message }) => {
                 }
           }
         >
-          {message?.message}
+          <div className="flex items-end gap-2">
+            <span>{message?.message}</span>
+            {isMyMessage && (
+              <span className="flex-shrink-0 mb-0.5 ml-1">
+                {message?.status === "read" ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                    <polyline points="22 6 11 17" />
+                  </svg>
+                ) : message?.status === "delivered" ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                    <polyline points="22 6 11 17" />
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </div>
