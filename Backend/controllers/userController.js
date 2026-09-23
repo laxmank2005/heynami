@@ -185,7 +185,8 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const user = await User.findOne({ email });
+    const trimmedEmail = email.trim();
+    const user = await User.findOne({ email: trimmedEmail });
     if (!user) {
       return res.status(400).json({
         message: "Invalid email or password",
@@ -223,7 +224,7 @@ export const login = async (req, res) => {
         maxAge: 1 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: "none",
-        secure: true,
+        secure: process.env.NODE_ENV === "production",
       })
       .json({
         success: true,
@@ -252,7 +253,7 @@ export const logout = (req, res) => {
     res.clearCookie("token");
     return res
       .status(200)
-      .cookie("token", "", { maxAge: 0, httpOnly: true, sameSite: "none", secure: true })
+      .cookie("token", "", { maxAge: 0, httpOnly: true, sameSite: "none", secure: process.env.NODE_ENV === "production" })
       .json({ message: "Logout successfully" });
   } catch (error) {
     console.error(error);
