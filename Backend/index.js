@@ -54,10 +54,9 @@ app.use(express.json({ limit: "10kb" })); // limit body size
 app.use(cookieParser());
 
 // 6. Data Sanitization
-// Against NoSQL query injection
-app.use(mongoSanitize());
-// Against XSS (Cross-Site Scripting)
-app.use(xss());
+import { Conversation } from "./models/conversationModel.js";
+import { User } from "./models/userModel.js";
+import { Messages } from "./models/messageModel.js";
 
 connectDB();
 

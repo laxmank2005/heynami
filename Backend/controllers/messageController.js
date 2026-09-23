@@ -1,13 +1,18 @@
 import { Messages } from "../models/messageModel.js";
 import { Conversation } from "../models/conversationModel.js";
+import { User } from "../models/userModel.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
     try {
         const senderId = req.id;
         const receiverId = req.params.id;
-        const { message, isEncrypted = false } = req.body;
+        const { message, isEncrypted = false, replyTo } = req.body;
 
+        // Prevent self-messaging
+        if (senderId === receiverId) {
+            return res.status(400).json({ success: false, message: "You cannot send a message to yourself." });
+        }
         if (!message) {
             return res.status(400).json({ message: "Message is required" });
         }
@@ -34,6 +39,7 @@ export const sendMessage = async (req, res) => {
             receiverId,
             message,
             isEncrypted,
+            replyTo: replyTo || null,
             status: isReceiverOnline ? "delivered" : "sent"
         });
 
@@ -45,8 +51,12 @@ export const sendMessage = async (req, res) => {
 
         // Emit to receiver via socket
         if (isReceiverOnline) {
+            const senderUser = await User.findById(senderId).select("fullName email profilePhoto gender publicKey");
+            const messageObj = newMessage.toObject();
+            messageObj.senderObj = senderUser;
+
             receiverSocketIds.forEach(socketId => {
-                io.to(socketId).emit("newMessage", newMessage);
+                io.to(socketId).emit("newMessage", messageObj);
             });
         }
 
@@ -120,4 +130,116 @@ export const getMessage = async (req, res) => {
     }
 };
 
-// const { message } = req.body;
+// Edit a message
+export const editMessage = async (req, res) => {
+    try {
+        const userId = req.id;
+        const messageId = req.params.msgId;
+        const { message, isEncrypted } = req.body;
+
+        const msg = await Messages.findById(messageId);
+        if (!msg) return res.status(404).json({ success: false, message: "Message not found" });
+
+        if (msg.senderId.toString() !== userId) {
+            return res.status(403).json({ success: false, message: "Unauthorized to edit this message" });
+        }
+
+        msg.message = message;
+        if (isEncrypted !== undefined) msg.isEncrypted = isEncrypted;
+        msg.isEdited = true;
+        await msg.save();
+
+        // Emit socket to receiver
+        const receiverId = msg.receiverId.toString();
+        const receiverSocketIds = getReceiverSocketId(receiverId);
+        if (receiverSocketIds && receiverSocketIds.length > 0) {
+            receiverSocketIds.forEach(socketId => {
+                io.to(socketId).emit("messageEdited", { 
+                    messageId: msg._id, 
+                    message: msg.message, 
+                    isEdited: true, 
+                    isEncrypted: msg.isEncrypted,
+                    senderId: msg.senderId.toString()
+                });
+            });
+        }
+        return res.status(200).json({ success: true, message: "Message edited", msg });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+// Delete a message
+export const deleteMessage = async (req, res) => {
+    try {
+        const userId = req.id;
+        const messageId = req.params.msgId;
+
+        const msg = await Messages.findById(messageId);
+        if (!msg) return res.status(404).json({ success: false, message: "Message not found" });
+
+        if (msg.senderId.toString() !== userId) {
+            return res.status(403).json({ success: false, message: "Unauthorized to delete this message" });
+        }
+
+        msg.isDeleted = true;
+        msg.message = ""; // clear text for privacy
+        await msg.save();
+
+        // Emit socket to receiver
+        const receiverId = msg.receiverId.toString();
+        const receiverSocketIds = getReceiverSocketId(receiverId);
+        if (receiverSocketIds && receiverSocketIds.length > 0) {
+            receiverSocketIds.forEach(socketId => {
+                io.to(socketId).emit("messageDeleted", { 
+                    messageId: msg._id,
+                    senderId: msg.senderId.toString()
+                });
+            });
+        }
+        return res.status(200).json({ success: true, message: "Message deleted", msg });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+// Toggle a reaction on a message
+export const reactMessage = async (req, res) => {
+    try {
+        const userId = req.id;
+        const messageId = req.params.msgId;
+        const { emoji } = req.body;
+
+        if (!emoji) return res.status(400).json({ success: false, message: "Emoji is required" });
+
+        const msg = await Messages.findById(messageId);
+        if (!msg) return res.status(404).json({ success: false, message: "Message not found" });
+
+        const existingReactionIndex = msg.reactions.findIndex(r => r.userId.toString() === userId && r.emoji === emoji);
+
+        if (existingReactionIndex !== -1) {
+            msg.reactions.splice(existingReactionIndex, 1);
+        } else {
+            msg.reactions.push({ emoji, userId });
+        }
+
+        await msg.save();
+
+        // Broadcast to the other participant
+        const otherParticipantId = msg.receiverId.toString() === userId ? msg.senderId.toString() : msg.receiverId.toString();
+        const receiverSocketIds = getReceiverSocketId(otherParticipantId);
+        
+        if (receiverSocketIds && receiverSocketIds.length > 0) {
+            receiverSocketIds.forEach(socketId => {
+                io.to(socketId).emit("messageReactionUpdated", { messageId: msg._id, reactions: msg.reactions });
+            });
+        }
+
+        return res.status(200).json({ success: true, reactions: msg.reactions, msg });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};

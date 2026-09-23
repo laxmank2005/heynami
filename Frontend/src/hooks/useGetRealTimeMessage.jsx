@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addMessage, updateMessageStatus, markAllMessagesRead } from "../redux/messageSlice";
+import { addMessage, updateMessageStatus, markAllMessagesRead, updateMessage, updateMessageReactions } from "../redux/messageSlice";
 import { updateUserList } from "../redux/userSlice";
 import { 
   importPublicKey, 
@@ -14,16 +14,30 @@ const useGetRealTimeMessage = () => {
     const { selectedUser, otherUsers } = useSelector(store => store.user);
     const dispatch = useDispatch();
 
+    // Use refs so the async handler always has the latest values without stale closures
+    const selectedUserRef = useRef(selectedUser);
+    const otherUsersRef = useRef(otherUsers);
+    selectedUserRef.current = selectedUser;
+    otherUsersRef.current = otherUsers;
+
     useEffect(() => {
         const handleNewMessage = async (newMessage) => {
-            const isCurrentlySelected = selectedUser?._id === newMessage.senderId;
+            // Normalize IDs to strings immediately — prevents ObjectId vs string issues
+            const senderIdStr = newMessage.senderId?.toString();
+            const receiverIdStr = newMessage.receiverId?.toString();
+
+            // Check if the sender is the user currently open in chat
+            const isCurrentlySelected = selectedUserRef.current?._id?.toString() === senderIdStr;
             
             // --- E2EE Decryption for real-time messages ---
             let decryptedText = newMessage.message;
             if (newMessage.isEncrypted) {
                 try {
                     const authUser = JSON.parse(localStorage.getItem("authUser"));
-                    const sender = otherUsers.find(u => u._id === newMessage.senderId);
+                    // Find sender in otherUsers using string comparison
+                    const sender = (otherUsersRef.current || []).find(
+                        u => u._id?.toString() === senderIdStr
+                    ) || newMessage.senderObj;
                     
                     if (sender?.publicKey && authUser?.privateKey) {
                         const theirPublicKey = await importPublicKey(sender.publicKey);
@@ -44,18 +58,25 @@ const useGetRealTimeMessage = () => {
                 }
             }
 
-            const finalMessage = { ...newMessage, message: decryptedText };
+            const finalMessage = {
+              ...newMessage,
+              message: decryptedText,
+              senderId: senderIdStr,
+              receiverId: receiverIdStr,
+            };
 
+            // Add to message list only if this conversation is open
             if (isCurrentlySelected) {
                 dispatch(addMessage(finalMessage));
             }
             
-            // Update sidebar: bump to top + last message preview + unread count
+            // Always update sidebar: bump to top, show last message, unread badge
             dispatch(updateUserList({
-                userId: newMessage.senderId,
+                userId: senderIdStr,
                 isUnread: !isCurrentlySelected,
                 lastMessage: decryptedText,
                 lastMessageTime: newMessage.createdAt,
+                userObj: newMessage.senderObj,
             }));
         };
 
@@ -64,21 +85,67 @@ const useGetRealTimeMessage = () => {
             dispatch(updateMessageStatus({ messageId, status }));
         };
 
-        // Handle when the other person reads our messages
         const handleMessagesRead = ({ byUserId }) => {
             dispatch(markAllMessagesRead({ fromUserId: byUserId }));
+        };
+
+        const handleMessageEdited = async (data) => {
+            const { messageId, isEdited, isEncrypted, senderId } = data;
+            let decryptedText = data.message;
+            
+            if (isEncrypted) {
+                try {
+                    const authUser = JSON.parse(localStorage.getItem("authUser"));
+                    const sender = (otherUsersRef.current || []).find(
+                        u => u._id?.toString() === senderId?.toString()
+                    );
+                    
+                    if (sender?.publicKey && authUser?.privateKey) {
+                        const theirPublicKey = await importPublicKey(sender.publicKey);
+                        const myPrivateKeyBuffer = base64ToArrayBuffer(authUser.privateKey);
+                        const myPrivateKey = await window.crypto.subtle.importKey(
+                            "pkcs8",
+                            myPrivateKeyBuffer,
+                            { name: "ECDH", namedCurve: "P-256" },
+                            true,
+                            ["deriveKey", "deriveBits"]
+                        );
+                        
+                        const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
+                        decryptedText = await decryptMessage(data.message, sharedSecret);
+                    }
+                } catch (e) {
+                    console.error("Failed to decrypt edited message:", e);
+                }
+            }
+            
+            dispatch(updateMessage({ messageId, message: decryptedText, isEdited }));
+        };
+
+        const handleMessageDeleted = ({ messageId }) => {
+            dispatch(updateMessage({ messageId, isDeleted: true, message: "" }));
+        };
+
+        const handleMessageReactionUpdated = ({ messageId, reactions }) => {
+            dispatch(updateMessageReactions({ messageId, reactions }));
         };
 
         socket?.on("newMessage", handleNewMessage);
         socket?.on("messageStatusUpdate", handleMessageStatusUpdate);
         socket?.on("messagesRead", handleMessagesRead);
+        socket?.on("messageEdited", handleMessageEdited);
+        socket?.on("messageDeleted", handleMessageDeleted);
+        socket?.on("messageReactionUpdated", handleMessageReactionUpdated);
 
         return () => {
             socket?.off("newMessage", handleNewMessage);
             socket?.off("messageStatusUpdate", handleMessageStatusUpdate);
             socket?.off("messagesRead", handleMessagesRead);
+            socket?.off("messageEdited", handleMessageEdited);
+            socket?.off("messageDeleted", handleMessageDeleted);
+            socket?.off("messageReactionUpdated", handleMessageReactionUpdated);
         };
-    }, [socket, selectedUser, dispatch, otherUsers]);
+    }, [socket, dispatch]); // Only re-register when socket changes — refs handle the rest
 };
 
-export default useGetRealTimeMessage;
+export default useGetRealTimeMessage;

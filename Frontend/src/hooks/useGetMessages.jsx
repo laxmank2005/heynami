@@ -11,16 +11,20 @@ import {
   decryptMessage 
 } from "../utils/crypto";
 
-const useGetMessages = async () => {
+// NOTE: Hook must NOT be async - async work happens inside useEffect
+const useGetMessages = () => {
   const { selectedUser } = useSelector((store) => store.user);
   const dispatch = useDispatch();
+
   useEffect(() => {
+    if (!selectedUser?._id) return;
+
     const fetchMessages = async () => {
       try {
         const authUser = JSON.parse(localStorage.getItem("authUser"));
         axios.defaults.withCredentials = true;
         const res = await axios.get(
-          API_ENDPOINTS.MESSAGE.GET(selectedUser?._id), {
+          API_ENDPOINTS.MESSAGE.GET(selectedUser._id), {
             headers: {
               "Authorization": `Bearer ${authUser?.token}`
             }
@@ -46,7 +50,6 @@ const useGetMessages = async () => {
             // Decrypt all messages concurrently
             messages = await Promise.all(
               messages.map(async (msg) => {
-                // To avoid breaking old plaintext messages in DB, we check if it looks like base64 ciphertext
                 if (msg.isEncrypted) {
                   try {
                     const decryptedText = await decryptMessage(msg.message, sharedSecret);
@@ -63,13 +66,22 @@ const useGetMessages = async () => {
           }
         }
 
+        // Normalize all senderId/receiverId to strings (prevents ObjectId vs string comparison bugs)
+        messages = messages.map(msg => ({
+          ...msg,
+          senderId: msg.senderId?.toString?.() ?? msg.senderId,
+          receiverId: msg.receiverId?.toString?.() ?? msg.receiverId,
+        }));
+
         dispatch(setMessages(messages));
       } catch (error) {
-        // Error fetching messages
+        console.error("Error fetching messages:", error);
+        dispatch(setMessages([]));
       }
     };
+
     fetchMessages();
-  },[selectedUser, dispatch]);
+  }, [selectedUser?._id, dispatch]);
 };
 
 export default useGetMessages;

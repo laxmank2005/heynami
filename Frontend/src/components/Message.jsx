@@ -1,11 +1,31 @@
 import React from "react";
-import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setReplyingTo, setEditingMessage, updateMessageReactions, updateMessage } from "../redux/messageSlice";
+import axios from "axios";
+import { API_ENDPOINTS } from "../config/api";
+import { BsReplyFill, BsPencilSquare, BsTrashFill, BsEmojiSmile } from "react-icons/bs";
+
+const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
 
 const Message = ({ message }) => {
   const scroll = useRef();
+  const dispatch = useDispatch();
+  
   const { authUser, selectedUser } = useSelector(store => store.user);
-  const isMyMessage = authUser?._id === message?.senderId;
+  const { messages } = useSelector(store => store.message);
+  
+  const [showActions, setShowActions] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // In a 1-on-1 chat: if the sender is NOT the selected user, it must be MY message.
+  const isMyMessage = message?.senderId?.toString() !== selectedUser?._id?.toString();
+
+  // Find replied-to message if any
+  const repliedMessage = message?.replyTo 
+    ? messages?.find(m => m._id === message.replyTo) 
+    : null;
 
   useEffect(() => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
@@ -19,14 +39,58 @@ const Message = ({ message }) => {
       })
     : "";
 
+  const handleReply = () => dispatch(setReplyingTo(message));
+  const handleEdit = () => dispatch(setEditingMessage(message));
+  
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
+    setShowDeleteConfirm(false);
+    setIsDeleting(true);
+    try {
+      const authUserObj = JSON.parse(localStorage.getItem("authUser"));
+      axios.defaults.withCredentials = true;
+      await axios.delete(API_ENDPOINTS.MESSAGE.DELETE(message._id), {
+        headers: { "Authorization": `Bearer ${authUserObj?.token}` }
+      });
+      // Optimistic update
+      dispatch(updateMessage({ messageId: message._id, isDeleted: true, message: "" }));
+    } catch (error) {
+      console.error("Failed to delete message", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleReact = async (emoji) => {
+    try {
+      const authUserObj = JSON.parse(localStorage.getItem("authUser"));
+      axios.defaults.withCredentials = true;
+      const res = await axios.post(API_ENDPOINTS.MESSAGE.REACT(message._id), { emoji }, {
+        headers: { "Authorization": `Bearer ${authUserObj?.token}` }
+      });
+      dispatch(updateMessageReactions({ messageId: message._id, reactions: res.data.reactions }));
+    } catch (error) {
+      console.error("Failed to react", error);
+    }
+  };
+
+  // Group reactions by emoji
+  const groupedReactions = (message?.reactions || []).reduce((acc, r) => {
+      acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+      return acc;
+  }, {});
+
   return (
     <div
       ref={scroll}
-      className={`flex items-end gap-2.5 mb-4 ${isMyMessage ? "flex-row-reverse" : "flex-row"}`}
+      className={`flex items-start gap-2.5 mb-4 ${isMyMessage ? "flex-row-reverse" : "flex-row"}`}
     >
       {/* Other user's avatar */}
       {!isMyMessage && (
-        <div className="flex-shrink-0 mb-1">
+        <div className="flex-shrink-0 mt-0.5">
           {selectedUser?.profilePhoto ? (
             <img
               src={selectedUser.profilePhoto}
@@ -44,7 +108,9 @@ const Message = ({ message }) => {
 
       {/* Bubble group */}
       <div
-        className={`flex flex-col gap-1 max-w-[70%] ${isMyMessage ? "items-end" : "items-start"}`}
+        className={`flex flex-col gap-1 max-w-[75%] ${isMyMessage ? "items-end" : "items-start"}`}
+        onMouseEnter={() => setShowActions(true)}
+        onMouseLeave={() => setShowActions(false)}
       >
         {/* Sender label + time */}
         {!isMyMessage && (
@@ -70,49 +136,158 @@ const Message = ({ message }) => {
           </div>
         )}
 
-        {/* Bubble */}
-        <div
-          className={`relative px-4 py-2.5 text-sm break-words leading-relaxed ${
-            isMyMessage
-              ? "text-white rounded-2xl rounded-br-sm"
-              : "text-gray-800 dark:text-stone-100 bg-gray-50 dark:bg-stone-800/80 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-stone-700"
-          }`}
-          style={
-            isMyMessage
-              ? {
-                  background: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
-                  boxShadow: "0 4px 14px rgba(109,40,217,0.25)",
-                  fontFamily: "Inter, system-ui, sans-serif",
-                }
-              : {
-                  fontFamily: "Inter, system-ui, sans-serif",
-                }
-          }
-        >
-          <div className="flex items-end gap-2">
-            <span>{message?.message}</span>
-            {isMyMessage && (
-              <span className="flex-shrink-0 mb-0.5 ml-1">
-                {message?.status === "read" ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                    <polyline points="22 6 11 17" />
-                  </svg>
-                ) : message?.status === "delivered" ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                    <polyline points="22 6 11 17" />
-                  </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
-              </span>
+        {/* Reply Preview */}
+        {repliedMessage && !message.isDeleted && (
+          <div 
+            className={`text-xs p-2 rounded-lg bg-gray-100 dark:bg-stone-800 text-gray-500 dark:text-stone-400 mb-0.5 max-w-full truncate border-l-4 cursor-pointer hover:opacity-80 transition ${isMyMessage ? "border-violet-500" : "border-gray-400"}`}
+            onClick={() => {
+              // Can optionally scroll to the original message if we wanted, using its ID
+            }}
+          >
+             <span className="font-semibold">{repliedMessage.senderId.toString() === authUser?._id?.toString() ? "You" : selectedUser?.fullName}:</span> {repliedMessage.isDeleted ? "🚫 This message was deleted" : repliedMessage.message}
+          </div>
+        )}
+
+        {/* Bubble Row (Actions + Bubble) */}
+        <div className="relative flex items-center group w-full justify-end">
+            
+            {/* Actions Menu (Left side for MY messages) */}
+            {isMyMessage && showActions && !message.isDeleted && (
+                <div className="flex items-center gap-1 bg-white dark:bg-stone-800 shadow-sm border border-gray-100 dark:border-stone-700 rounded-lg p-1 mr-2 z-10 shrink-0">
+                    <div className="relative flex items-center group/react">
+                        <button className="p-1.5 text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-stone-700 rounded transition peer"><BsEmojiSmile /></button>
+                        <div className="absolute hidden peer-hover:flex hover:flex bottom-full left-1/2 -translate-x-1/2 mb-1 bg-white dark:bg-stone-800 shadow-lg border border-gray-100 dark:border-stone-700 rounded-full p-1 gap-1 z-20">
+                            {QUICK_REACTIONS.map(emoji => (
+                                <button key={emoji} onClick={() => handleReact(emoji)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-stone-700 rounded-full transition text-lg">
+                                    {emoji}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <button onClick={handleReply} className="p-1.5 text-gray-500 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-stone-700 rounded transition"><BsReplyFill /></button>
+                    <button onClick={handleEdit} className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-stone-700 rounded transition"><BsPencilSquare /></button>
+                    <button onClick={handleDeleteClick} disabled={isDeleting} className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-stone-700 rounded transition"><BsTrashFill /></button>
+                </div>
             )}
+
+            {/* Bubble */}
+            <div
+              className={`relative px-4 py-2.5 text-sm break-words leading-relaxed shrink-1 ${
+                message.isDeleted 
+                  ? "text-gray-400 dark:text-stone-500 bg-gray-50 dark:bg-stone-800/50 rounded-2xl border border-gray-100 dark:border-stone-700 italic"
+                  : isMyMessage
+                  ? "text-white rounded-2xl rounded-br-sm"
+                  : "text-gray-800 dark:text-stone-100 bg-gray-50 dark:bg-stone-800/80 rounded-2xl rounded-bl-sm border border-gray-100 dark:border-stone-700"
+              }`}
+              style={
+                !message.isDeleted && isMyMessage
+                  ? {
+                      background: "linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)",
+                      boxShadow: "0 4px 14px rgba(109,40,217,0.25)",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                    }
+                  : {
+                      fontFamily: "Inter, system-ui, sans-serif",
+                    }
+              }
+            >
+              <div className="flex items-end gap-2">
+                <span className="break-all break-words whitespace-pre-wrap min-w-0 flex-1">
+                    {message.isDeleted ? "🚫 This message was deleted" : message?.message}
+                </span>
+                
+                {message.isEdited && !message.isDeleted && (
+                    <span className="text-[10px] opacity-70 ml-1 italic flex-shrink-0">(edited)</span>
+                )}
+
+                {isMyMessage && !message.isDeleted && (
+                  <span className="flex-shrink-0 mb-0.5 ml-1">
+                    {message?.status === "read" ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                        <polyline points="22 6 11 17" />
+                      </svg>
+                    ) : message?.status === "delivered" ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                        <polyline points="22 6 11 17" />
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Actions Menu (Right side for OTHER's messages) */}
+            {!isMyMessage && showActions && !message.isDeleted && (
+                <div className="flex items-center gap-1 bg-white dark:bg-stone-800 shadow-sm border border-gray-100 dark:border-stone-700 rounded-lg p-1 ml-2 z-10 shrink-0">
+                    <button onClick={handleReply} className="p-1.5 text-gray-500 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-stone-700 rounded transition"><BsReplyFill /></button>
+                    
+                    <div className="relative flex items-center group/react">
+                        <button className="p-1.5 text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-stone-700 rounded transition peer"><BsEmojiSmile /></button>
+                        <div className="absolute hidden peer-hover:flex hover:flex bottom-full left-1/2 -translate-x-1/2 mb-1 bg-white dark:bg-stone-800 shadow-lg border border-gray-100 dark:border-stone-700 rounded-full p-1 gap-1 z-20">
+                            {QUICK_REACTIONS.map(emoji => (
+                                <button key={emoji} onClick={() => handleReact(emoji)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-stone-700 rounded-full transition text-lg">
+                                    {emoji}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+
+        {/* Reactions Display */}
+        {Object.keys(groupedReactions).length > 0 && (
+            <div className={`flex flex-wrap gap-1 mt-0.5 ${isMyMessage ? "justify-end" : "justify-start"}`}>
+                {Object.entries(groupedReactions).map(([emoji, count]) => (
+                    <button 
+                      key={emoji} 
+                      onClick={() => handleReact(emoji)} 
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition ${
+                        (message.reactions || []).some(r => r.emoji === emoji && r.userId.toString() === authUser?._id?.toString())
+                          ? "bg-violet-100 dark:bg-violet-900/40 border-violet-200 dark:border-violet-800 text-violet-700 dark:text-violet-300"
+                          : "bg-gray-50 dark:bg-stone-800 hover:bg-gray-100 dark:hover:bg-stone-700 border-gray-200 dark:border-stone-700 text-gray-600 dark:text-stone-300"
+                      }`}
+                    >
+                        <span>{emoji}</span>
+                        {count > 1 && <span className="font-medium opacity-80">{count}</span>}
+                    </button>
+                ))}
+            </div>
+        )}
+
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity">
+          <div className="bg-white dark:bg-stone-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 border border-gray-100 dark:border-stone-800 transform transition-all scale-100 opacity-100">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 font-inter">Delete Message</h3>
+            <p className="text-sm text-gray-500 dark:text-stone-400 mb-6 font-inter leading-relaxed">
+              Are you sure you want to delete this message? This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-gray-600 dark:text-stone-300 hover:bg-gray-100 dark:hover:bg-stone-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 shadow-md shadow-red-500/20 transition-all"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -14,32 +14,38 @@ import { setOnlineUsers } from "./redux/userSlice";
 import { setSocket } from "./redux/socketSlice";
 import { SOCKET_URL } from "./config/api";
 
-// Wrapper that decides: landing page (unauthed) or chat (authed)
-const RootRoute = () => {
+// Only accessible when NOT logged in (login, register)
+const PublicOnlyRoute = ({ children }) => {
   const { authUser } = useSelector((store) => store.user);
-  return authUser ? <Homepage /> : <LandingPage />;
+  return authUser ? <Navigate to="/" replace /> : children;
+};
+
+// Only accessible when logged in (homepage)
+const PrivateRoute = ({ children }) => {
+  const { authUser } = useSelector((store) => store.user);
+  return authUser ? children : <Navigate to="/landing" replace />;
 };
 
 const router = createBrowserRouter([
   {
-    path:"/",
-    element:<RootRoute />
+    path: "/",
+    element: <PrivateRoute><Homepage /></PrivateRoute>
   },
   {
-    path:"/landing",
-    element:<LandingPage />
+    path: "/landing",
+    element: <PublicOnlyRoute><LandingPage /></PublicOnlyRoute>
   },
-   {
-    path:"/register",
-    element:<Register />
+  {
+    path: "/register",
+    element: <PublicOnlyRoute><Register /></PublicOnlyRoute>
   },
-   {
-    path:"/login",
-    element:<Login />
+  {
+    path: "/login",
+    element: <PublicOnlyRoute><Login /></PublicOnlyRoute>
   },
   {
     path: "*",
-    element: <Navigate to="/" />
+    element: <Navigate to="/" replace />
   }
 ])
 

@@ -55,7 +55,9 @@ const NewChatModal = ({ isOpen, onClose }) => {
       });
       const data = await res.json();
       if (data.success) {
-        setResults(data.users);
+        // Safety: filter out self from results in case of edge cases
+        const filtered = data.users.filter(u => u._id !== authUser?._id);
+        setResults(filtered);
       } else {
         setResults([]);
       }

@@ -268,22 +268,38 @@ export const getConversationUsers = async (req, res) => {
     // Find all conversations where the logged-in user is a participant
     const conversations = await Conversation.find({
       participants: loggedInUserId
-    })
-      .sort({ updatedAt: -1 }) // Most recent conversations first
-      .populate({
-        path: "participants",
-        select: "fullName email mobile profilePhoto gender publicKey isEmailVerified",
-        match: { _id: { $ne: loggedInUserId } } // Exclude self
-      });
+    }).sort({ updatedAt: -1 });
 
-    // Extract the other user from each conversation (filter out nulls from match)
-    const users = conversations
-      .map(conv => conv.participants.find(p => p !== null && p._id.toString() !== loggedInUserId))
+    // Collect the OTHER participant IDs (excluding self), deduplicated
+    const otherUserIds = [];
+    const seen = new Set();
+    for (const conv of conversations) {
+      for (const pid of conv.participants) {
+        const pidStr = pid.toString();
+        if (pidStr !== loggedInUserId && !seen.has(pidStr)) {
+          seen.add(pidStr);
+          otherUserIds.push(pid);
+        }
+      }
+    }
+
+    if (otherUserIds.length === 0) {
+      return res.status(200).json({ success: true, users: [] });
+    }
+
+    // Fetch the actual user documents for those IDs
+    const users = await User.find({ _id: { $in: otherUserIds } })
+      .select("fullName email mobile profilePhoto gender publicKey isEmailVerified");
+
+    // Re-sort to match the conversation order (most recent first)
+    const userMap = new Map(users.map(u => [u._id.toString(), u]));
+    const orderedUsers = otherUserIds
+      .map(id => userMap.get(id.toString()))
       .filter(Boolean);
 
     return res.status(200).json({
       success: true,
-      users,
+      users: orderedUsers,
     });
   } catch (error) {
     console.error(error);

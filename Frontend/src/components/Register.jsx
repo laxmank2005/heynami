@@ -268,7 +268,7 @@ const Register = () => {
       {/* ── Top Navigation (Back to Home & Theme Toggle) ── */}
       <div className="w-full px-5 py-4 sm:p-6 flex justify-between items-center z-50 absolute top-0 left-0">
         <Link 
-          to="/" 
+          to="/landing" 
           className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-stone-400 dark:hover:text-white transition-colors bg-white/50 dark:bg-[#111]/50 backdrop-blur-md px-3.5 py-2 rounded-xl border border-gray-200/50 dark:border-stone-800"
         >
           <BsArrowLeft className="text-lg" />

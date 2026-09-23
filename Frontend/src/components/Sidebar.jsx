@@ -41,7 +41,9 @@ const Sidebar = () => {
     }
   };
 
-  const totalUsers = otherUsers?.length || 0;
+  const isLoading = otherUsers === null;
+  const nonSelfUsers = otherUsers?.filter(u => u._id !== authUser?._id) ?? [];
+  const totalUsers = nonSelfUsers.length;
 
   return (
     <>
@@ -149,9 +151,28 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* ── User List / Empty State ── */}
+        {/* ── User List / Skeleton / Empty State ── */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pb-4">
-          {totalUsers === 0 ? (
+          {/* Always render OtherUsers so the fetch hook mounts */}
+          <OtherUsers search={search} />
+
+          {/* Loading skeleton — shown only while first fetch is in flight */}
+          {isLoading && (
+            <div className="flex flex-col gap-1 px-2 pt-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-3 py-3 rounded-xl">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 dark:bg-stone-800 animate-pulse flex-shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 rounded-full bg-gray-100 dark:bg-stone-800 animate-pulse w-2/3" />
+                    <div className="h-2.5 rounded-full bg-gray-100 dark:bg-stone-800 animate-pulse w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state — only shown when fetch is DONE and list is truly empty */}
+          {!isLoading && totalUsers === 0 && (
             <div className="flex flex-col items-center justify-center h-full px-6 text-center">
               <div className="w-14 h-14 rounded-[1.25rem] bg-violet-100/80 dark:bg-violet-900/20 flex items-center justify-center mb-4 border border-violet-200/50 dark:border-violet-800/30">
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -175,8 +196,6 @@ const Sidebar = () => {
                 Start a New Chat
               </button>
             </div>
-          ) : (
-            <OtherUsers search={search} />
           )}
         </div>
       </div>

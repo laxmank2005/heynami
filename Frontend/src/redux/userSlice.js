@@ -4,7 +4,7 @@ const userSlice = createSlice({
   name: "user",
   initialState: {
     authUser: localStorage.getItem("authUser") ? JSON.parse(localStorage.getItem("authUser")) : null,
-    otherUsers: [],
+    otherUsers: null,   // null = not yet loaded, [] = loaded but empty
     selectedUser: null,
     onlineUsers: [],
   },
@@ -22,10 +22,17 @@ const userSlice = createSlice({
       state.selectedUser = action.payload;
     },
     updateUserList: (state, action) => {
-      const { userId, isUnread, lastMessage, lastMessageTime } = action.payload;
+      const { userId, isUnread, lastMessage, lastMessageTime, userObj } = action.payload;
       const userIndex = state.otherUsers.findIndex((u) => u._id === userId);
+      
+      let user;
       if (userIndex !== -1) {
-        const [user] = state.otherUsers.splice(userIndex, 1);
+        [user] = state.otherUsers.splice(userIndex, 1);
+      } else if (userObj) {
+        user = { ...userObj };
+      }
+
+      if (user) {
         if (isUnread) {
           user.unreadCount = (user.unreadCount || 0) + 1;
           user.hasUnread = true;

@@ -15,5 +15,9 @@ export const API_ENDPOINTS = {
   MESSAGE: {
     SEND: (id) => `${API_URL}/api/v1/message/send/${id}`,
     GET: (id) => `${API_URL}/api/v1/message/${id}`,
+    MARK_READ: (senderId) => `${API_URL}/api/v1/message/read/${senderId}`,
+    EDIT: (msgId) => `${API_URL}/api/v1/message/edit/${msgId}`,
+    DELETE: (msgId) => `${API_URL}/api/v1/message/delete/${msgId}`,
+    REACT: (msgId) => `${API_URL}/api/v1/message/react/${msgId}`,
   }
 };

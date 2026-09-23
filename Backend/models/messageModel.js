@@ -23,7 +23,26 @@ const messageModel = new mongoose.Schema({
         type: String,
         enum: ["sent", "delivered", "read"],
         default: "sent"
-    }
+    },
+    replyTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Messages",
+        default: null
+    },
+    isEdited: {
+        type: Boolean,
+        default: false
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    reactions: [
+        {
+            emoji: { type: String, required: true },
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
+        }
+    ]
 }, {
     timestamps: true
 });

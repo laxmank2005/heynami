@@ -5,16 +5,19 @@ import { useSelector } from "react-redux";
 
 const OtherUsers = ({ search }) => {
   useGetOtherUsers();
-  const { otherUsers } = useSelector((state) => state.user);
+  const { otherUsers, authUser } = useSelector((state) => state.user);
 
   if (!otherUsers) return null;
 
+  // Safety: never show yourself in the list
+  const nonSelfUsers = otherUsers.filter(u => u._id !== authUser?._id);
+
   const filteredUsers = search
-    ? otherUsers.filter((user) =>
-        user.fullName.toLowerCase().includes(search.toLowerCase()) ||
+    ? nonSelfUsers.filter((user) =>
+        user.fullName?.toLowerCase().includes(search.toLowerCase()) ||
         user.mobile?.includes(search)
       )
-    : otherUsers;
+    : nonSelfUsers;
 
   return (
     <div className="flex flex-col">
@@ -28,11 +31,7 @@ const OtherUsers = ({ search }) => {
             <OtherUser key={user._id} user={user} />
           ))}
         </>
-      ) : (
-        <div className="text-center py-8 text-sm text-gray-400 dark:text-stone-500">
-          No conversations found
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };

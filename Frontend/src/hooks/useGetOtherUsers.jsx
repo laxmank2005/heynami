@@ -1,36 +1,39 @@
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setOtherUsers } from "../redux/userSlice";
 import { API_ENDPOINTS } from "../config/api";
 
 const useGetOtherUsers = () => {
   const dispatch = useDispatch();
-  const { messages } = useSelector(store => store.message);
+  const { authUser } = useSelector(store => store.user);
 
-  useEffect(() => {
-    const fetchConversationUsers = async () => {
-      try {
-        const authUser = JSON.parse(localStorage.getItem("authUser"));
-        const res = await fetch(API_ENDPOINTS.USER.GET_OTHER_USERS, {
-          credentials: "include",
-          headers: {
-            "Authorization": `Bearer ${authUser?.token}`
-          }
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          dispatch(setOtherUsers(data.users));
+  const fetchConversationUsers = useCallback(async () => {
+    if (!authUser) return;
+    try {
+      const res = await fetch(API_ENDPOINTS.USER.GET_OTHER_USERS, {
+        credentials: "include",
+        headers: {
+          "Authorization": `Bearer ${authUser?.token}`
         }
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      });
 
+      const data = await res.json();
+
+      if (data.success) {
+        dispatch(setOtherUsers(data.users));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [dispatch, authUser]);
+
+  // Fetch on mount (covers page refresh) and whenever auth changes
+  useEffect(() => {
     fetchConversationUsers();
-  }, [dispatch, messages]);
-  // Re-fetches when messages change (so new conversation partners appear in sidebar after first message)
+  }, [fetchConversationUsers]);
+
+  // Expose refetch so other components can trigger a re-fetch (e.g. after first message sent)
+  return { refetch: fetchConversationUsers };
 };
 
 export default useGetOtherUsers;

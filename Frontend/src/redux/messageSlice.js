@@ -4,8 +4,18 @@ const messageSlice = createSlice({
     name: "message",
     initialState: {
         messages: null,
+        replyingTo: null,
+        editingMessage: null,
     },
     reducers: {
+        setReplyingTo: (state, action) => {
+            state.replyingTo = action.payload;
+            state.editingMessage = null; // can't do both at once
+        },
+        setEditingMessage: (state, action) => {
+            state.editingMessage = action.payload;
+            state.replyingTo = null;
+        },
         setMessages: (state, action) => {
             state.messages = action.payload;
         },
@@ -34,9 +44,29 @@ const messageSlice = createSlice({
                     }
                 });
             }
+        },
+        // Update message content (for edit/delete)
+        updateMessage: (state, action) => {
+            const { messageId, message, isEdited, isDeleted } = action.payload;
+            if (state.messages) {
+                const msg = state.messages.find(m => m._id === messageId);
+                if (msg) {
+                    if (message !== undefined) msg.message = message;
+                    if (isEdited !== undefined) msg.isEdited = isEdited;
+                    if (isDeleted !== undefined) msg.isDeleted = isDeleted;
+                }
+            }
+        },
+        // Update message reactions
+        updateMessageReactions: (state, action) => {
+            const { messageId, reactions } = action.payload;
+            if (state.messages) {
+                const msg = state.messages.find(m => m._id === messageId);
+                if (msg) msg.reactions = reactions;
+            }
         }
     }
 });
 
-export const { setMessages, addMessage, updateMessageStatus, markAllMessagesRead } = messageSlice.actions;
+export const { setMessages, addMessage, updateMessageStatus, markAllMessagesRead, updateMessage, updateMessageReactions, setReplyingTo, setEditingMessage } = messageSlice.actions;
 export default messageSlice.reducer;

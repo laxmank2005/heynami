@@ -4,6 +4,7 @@ import Messages from "./Messages";
 import { useDispatch, useSelector } from "react-redux";
 import { setSelectedUser } from "../redux/userSlice";
 import { clearUnread } from "../redux/userSlice";
+import { setMessages } from "../redux/messageSlice";
 import { API_ENDPOINTS } from "../config/api";
 
 const MessageContainer = () => {
@@ -16,6 +17,11 @@ const MessageContainer = () => {
   /* Initials avatar fallback */
   const getInitials = (name = "") =>
     name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  // Reset messages to null when switching conversations (shows skeleton instead of stale data)
+  useEffect(() => {
+    dispatch(setMessages(null));
+  }, [selectedUser?._id, dispatch]);
 
   // Mark messages as read when this conversation is opened
   useEffect(() => {

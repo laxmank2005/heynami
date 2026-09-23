@@ -22,7 +22,20 @@ const Messages = () => {
     <div
       className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 bg-white dark:bg-[#0d0d0d] transition-colors duration-300"
     >
-      {messages && messages.length > 0 ? (
+      {/* Loading skeleton */}
+      {messages === null && (
+        <div className="flex flex-col gap-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className={`flex items-end gap-2 ${i % 2 === 0 ? '' : 'flex-row-reverse'}`}>
+              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-stone-800 animate-pulse flex-shrink-0" />
+              <div className={`h-9 rounded-2xl bg-gray-100 dark:bg-stone-800 animate-pulse ${i % 2 === 0 ? 'w-48' : 'w-36'}`} />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Messages list */}
+      {messages !== null && messages.length > 0 ? (
         messages.map((message, index) => {
           const currentDate = new Date(message.createdAt).toDateString();
           const previousDate =
@@ -49,14 +62,14 @@ const Messages = () => {
             </React.Fragment>
           );
         })
-      ) : (
+      ) : messages !== null ? (
         <div className="h-full flex items-center justify-center">
           <p className="text-sm text-gray-300 dark:text-stone-600"
             style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
             No messages yet — say hello! 👋
           </p>
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
