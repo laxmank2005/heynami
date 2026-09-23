@@ -1,4 +1,5 @@
 import { User } from "../models/userModel.js";
+import { Conversation } from "../models/conversationModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendOTPEmail } from "../config/emailService.js";
@@ -32,7 +33,9 @@ export const register = async (req, res) => {
       await sendOTPEmail(email, otp, fullName);
     } catch (emailErr) {
       console.error("Failed to send OTP email:", emailErr.message);
-      // Still create the user but warn — don't block registration
+      return res.status(500).json({
+        message: "Failed to send verification email. Please try again later."
+      });
     }
 
     //Profile photo generation based on gender and email api
@@ -63,8 +66,7 @@ export const register = async (req, res) => {
     console.error(error);
     return res.status(500).json({
       message: "Internal Server Error",
-      error: error.message,
-      stack: error.stack
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 };
@@ -141,6 +143,9 @@ export const resendOTP = async (req, res) => {
       await sendOTPEmail(email, otp, user.fullName);
     } catch (emailErr) {
       console.error("Failed to resend OTP email:", emailErr.message);
+      return res.status(500).json({
+        message: "Failed to send verification email. Please try again later."
+      });
     }
 
     return res.status(200).json({
@@ -236,19 +241,72 @@ export const logout = (req, res) => {
   }
 };
 
-export const getOtherUsers = async (req, res) => {
+export const getConversationUsers = async (req, res) => {
   try {
     const loggedInUserId = req.id;
-    const otherUsers = await User.find({ _id: { $ne: loggedInUserId } }).select(
-      "-password",
-    );
+
+    // Find all conversations where the logged-in user is a participant
+    const conversations = await Conversation.find({
+      participants: loggedInUserId
+    })
+      .sort({ updatedAt: -1 }) // Most recent conversations first
+      .populate({
+        path: "participants",
+        select: "fullName email mobile profilePhoto gender publicKey isEmailVerified",
+        match: { _id: { $ne: loggedInUserId } } // Exclude self
+      });
+
+    // Extract the other user from each conversation (filter out nulls from match)
+    const users = conversations
+      .map(conv => conv.participants.find(p => p !== null && p._id.toString() !== loggedInUserId))
+      .filter(Boolean);
+
     return res.status(200).json({
       success: true,
-      users: otherUsers,
+      users,
     });
   } catch (error) {
     console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
 
+export const searchUsers = async (req, res) => {
+  try {
+    const loggedInUserId = req.id;
+    const { query } = req.query;
+
+    if (!query || query.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: "Search query must be at least 2 characters.",
+        users: [],
+      });
+    }
+
+    const trimmedQuery = query.trim();
+
+    // Search by exact mobile match OR partial email match (case-insensitive)
+    const users = await User.find({
+      _id: { $ne: loggedInUserId },
+      isEmailVerified: true,
+      $or: [
+        { mobile: trimmedQuery },
+        { email: { $regex: trimmedQuery, $options: "i" } },
+      ],
+    })
+      .select("fullName email mobile profilePhoto gender publicKey")
+      .limit(10);
+
+    return res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
