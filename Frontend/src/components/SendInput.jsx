@@ -5,6 +5,12 @@ import { setMessages } from "../redux/messageSlice";
 import { updateUserList } from "../redux/userSlice";
 import { toast } from "react-hot-toast";
 import { API_ENDPOINTS } from "../config/api";
+import { 
+  importPublicKey, 
+  base64ToArrayBuffer, 
+  deriveSharedSecret, 
+  encryptMessage 
+} from "../utils/crypto";
 
 const SendInput = () => {
   const [message, setMessage] = useState("");
@@ -22,10 +28,10 @@ const SendInput = () => {
     setMessage("");
     setIsSending(true);
 
-    // Optimistic add
+    // Optimistic add (we show the plaintext locally temporarily)
     const tempMessage = {
       _id: `temp-${Date.now()}`,
-      message: text,
+      message: text, // Keep plaintext for optimistic UI
       senderId: authUser._id,
       receiverId: selectedUser._id,
       createdAt: new Date().toISOString(),
@@ -33,9 +39,37 @@ const SendInput = () => {
     dispatch(setMessages([...(messages || []), tempMessage]));
 
     try {
+      let messageToSend = text;
+      let isMessageEncrypted = false;
+
+      // Encrypt the message if we have both keys
+      if (selectedUser?.publicKey && authUser?.privateKey) {
+        try {
+          const theirPublicKey = await importPublicKey(selectedUser.publicKey);
+          const myPrivateKeyBuffer = base64ToArrayBuffer(authUser.privateKey);
+          const myPrivateKey = await window.crypto.subtle.importKey(
+            "pkcs8",
+            myPrivateKeyBuffer,
+            { name: "ECDH", namedCurve: "P-256" },
+            true,
+            ["deriveKey", "deriveBits"]
+          );
+          
+          const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
+          messageToSend = await encryptMessage(text, sharedSecret);
+          isMessageEncrypted = true;
+        } catch (cryptoErr) {
+          console.error("Encryption failed:", cryptoErr);
+          toast.error("Encryption failed. Message not sent.");
+          dispatch(setMessages(messages || []));
+          setIsSending(false);
+          return;
+        }
+      }
+
       const res = await axios.post(
         API_ENDPOINTS.MESSAGE.SEND(selectedUser?._id),
-        { message: text },
+        { message: messageToSend, isEncrypted: isMessageEncrypted },
         {
           headers: {
             "Content-Type": "application/json",
@@ -44,9 +78,14 @@ const SendInput = () => {
           withCredentials: true,
         }
       );
-      // Replace temp with real
+      // Replace temp with real (and override encrypted server message with our local plaintext for UX)
       const updated = (messages || []).filter(m => m._id !== tempMessage._id);
-      dispatch(setMessages([...updated, res.data.newMessage]));
+      
+      const realMessage = res.data.newMessage;
+      // Force plaintext on our end since we just sent it
+      realMessage.message = text; 
+
+      dispatch(setMessages([...updated, realMessage]));
       dispatch(updateUserList({ userId: selectedUser._id, isUnread: false }));
     } catch {
       dispatch(setMessages(messages || []));

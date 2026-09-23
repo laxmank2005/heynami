@@ -6,11 +6,16 @@ export const sendMessage = async (req, res) => {
     try {
         const senderId = req.id;
         const receiverId = req.params.id;
-        const { message } = req.body;
+        const { message, isEncrypted = false } = req.body;
 
         if (!message) {
             return res.status(400).json({
                 message: "Message is required"
+            });
+        }
+        if (message.length > 5000) {
+            return res.status(400).json({
+                message: "Message exceeds maximum length of 5000 characters."
             });
         }
 
@@ -27,7 +32,8 @@ export const sendMessage = async (req, res) => {
         const newMessage = await Messages.create({
             senderId,
             receiverId,
-            message
+            message,
+            isEncrypted
         });
 
         if (newMessage) {
@@ -38,9 +44,14 @@ export const sendMessage = async (req, res) => {
 
         //socket.io
 
-        const receiverSocketId =getReceiverSocketId(receiverId);
-        if(receiverSocketId){
-            io.to(receiverSocketId).emit("newMessage",newMessage);
+        const receiverSocketIds = getReceiverSocketId(receiverId);
+        if (receiverSocketIds && Array.isArray(receiverSocketIds)) {
+            receiverSocketIds.forEach(socketId => {
+                io.to(socketId).emit("newMessage", newMessage);
+            });
+        } else if (receiverSocketIds) {
+            // Fallback in case it's a single string somehow
+            io.to(receiverSocketIds).emit("newMessage", newMessage);
         }
 
         return res.status(200).json({

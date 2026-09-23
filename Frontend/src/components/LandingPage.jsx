@@ -51,7 +51,7 @@ const LandingPage = () => {
             </span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle className="!p-2 border-none !bg-transparent hover:!bg-gray-200 dark:hover:!bg-stone-800 shadow-none !text-gray-600 dark:!text-stone-300" />
             <Link
               to="/login"

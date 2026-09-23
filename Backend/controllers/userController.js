@@ -1,13 +1,14 @@
 import { User } from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { sendOTPEmail } from "../config/emailService.js";
 
 // register testing done
 export const register = async (req, res) => {
   try {
-    const { fullName, email, mobile, password, confirmPassword, gender } = req.body;
+    const { fullName, email, mobile, password, confirmPassword, gender, publicKey, encryptedPrivateKey, keySalt, keyIv } = req.body;
     if (!fullName || !email || !mobile || !password || !confirmPassword || !gender) {
-      return res.status(400).json({ message: "All fields are required" });
+      return res.status(400).json({ message: "All base fields are required" });
     }
     if (password !== confirmPassword) {
       return res
@@ -26,8 +27,13 @@ export const register = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins expiry
 
-    // Mock sending email
-    console.log(`[MOCK EMAIL] To: ${email}, Your OTP for registration is: ${otp}`);
+    // Send real OTP email
+    try {
+      await sendOTPEmail(email, otp, fullName);
+    } catch (emailErr) {
+      console.error("Failed to send OTP email:", emailErr.message);
+      // Still create the user but warn — don't block registration
+    }
 
     //Profile photo generation based on gender and email api
     const maleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${email}`;
@@ -42,18 +48,23 @@ export const register = async (req, res) => {
       gender,
       isEmailVerified: false,
       otp,
-      otpExpiry
+      otpExpiry,
+      publicKey,
+      encryptedPrivateKey,
+      keySalt,
+      keyIv
     });
     return res.status(201).json({
       success: true,
       message: "OTP sent to your email. Please verify to complete registration.",
-      otp, // provided for dev/local testing
       email,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       message: "Internal Server Error",
+      error: error.message,
+      stack: error.stack
     });
   }
 };
@@ -126,12 +137,15 @@ export const resendOTP = async (req, res) => {
     user.otpExpiry = otpExpiry;
     await user.save();
 
-    console.log(`[MOCK EMAIL RESEND] To: ${email}, Your new OTP is: ${otp}`);
+    try {
+      await sendOTPEmail(email, otp, user.fullName);
+    } catch (emailErr) {
+      console.error("Failed to resend OTP email:", emailErr.message);
+    }
 
     return res.status(200).json({
       success: true,
       message: "A new verification code has been sent to your email.",
-      otp, // provided for dev/local testing
     });
   } catch (error) {
     console.error(error);
@@ -195,6 +209,10 @@ export const login = async (req, res) => {
         email: user.email,
         mobile: user.mobile,
         profilePhoto: user.profilePhoto,
+        publicKey: user.publicKey,
+        encryptedPrivateKey: user.encryptedPrivateKey,
+        keySalt: user.keySalt,
+        keyIv: user.keyIv,
         token: token,
       });
   } catch (error) {

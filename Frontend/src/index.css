@@ -9,6 +9,12 @@ html, body {
   width: 100%;
 }
 
+/* Disable native Edge / IE password reveal & clear buttons so they never clash or overlap */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 /* Hide scrollbars completely but keep scrolling functionality */
 .custom-scrollbar {
   scrollbar-width: none;

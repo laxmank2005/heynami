@@ -14,6 +14,10 @@ const messageModel = new mongoose.Schema({
     message: {
         type: String,
         required: true
+    },
+    isEncrypted: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true

@@ -37,6 +37,23 @@ const userModel=new mongoose.Schema({
     },
     otpExpiry :{
         type:Date
+    },
+    // --- E2EE Fields ---
+    publicKey: {
+        type: String,
+        required: false // Optional for backward compatibility, but required for new users
+    },
+    encryptedPrivateKey: {
+        type: String,
+        required: false
+    },
+    keySalt: {
+        type: String,
+        required: false
+    },
+    keyIv: {
+        type: String,
+        required: false
     }
 
 },{timestamps:true});

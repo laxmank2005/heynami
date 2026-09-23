@@ -1,6 +1,7 @@
 import {Server} from 'socket.io';
 import http from 'http';
-import express from "express"
+import express from "express";
+import jwt from "jsonwebtoken";
 
 
 const app=express();
@@ -17,31 +18,58 @@ const io =new Server(server,{
     },
 });
 
-export const getReceiverSocketId =(receiverId)=>{
-    return userSocketMap[receiverId];
+export const getReceiverSocketId = (receiverId) => {
+    return userSocketMap[receiverId]; // Now returns an array of socket IDs
 }
-const userSocketMap={};
+
+const userSocketMap = {}; // { userId: [socketId1, socketId2, ...] }
 
 
 
-io.on('connection',(socket)=>{
-    console.log('user connected',socket.id);
+// Socket authentication middleware
+io.use((socket, next) => {
+    try {
+        const token = socket.handshake.auth.token;
+        if (!token) {
+            return next(new Error("Authentication error: No token provided"));
+        }
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        socket.userId = decoded.userId;
+        next();
+    } catch (err) {
+        next(new Error("Authentication error: Invalid token"));
+    }
+});
 
-    const userId=socket.handshake.query.userId
-    if(userId && userId !== "undefined"){
-        userSocketMap[userId]=socket.id;
+io.on('connection', (socket) => {
+    console.log('user connected', socket.id);
+
+    const userId = socket.userId; // Retrieved securely from JWT middleware
+    
+    if (userId) {
+        if (!userSocketMap[userId]) {
+            userSocketMap[userId] = [];
+        }
+        userSocketMap[userId].push(socket.id);
     }
 
-    io.emit('getOnlineUsers',Object.keys(userSocketMap));
+    io.emit('getOnlineUsers', Object.keys(userSocketMap));
 
-    socket.on('disconnect',()=>{
-        console.log('user disconnected',socket.id);
-        if (userId && userSocketMap[userId] === socket.id) {
-            delete userSocketMap[userId];
+    socket.on('disconnect', () => {
+        console.log('user disconnected', socket.id);
+        if (userId && userSocketMap[userId]) {
+            // Remove just this specific socket ID from the user's array
+            userSocketMap[userId] = userSocketMap[userId].filter(id => id !== socket.id);
+            
+            // If they have no more connected sockets (closed all tabs), remove them from the map entirely
+            if (userSocketMap[userId].length === 0) {
+                delete userSocketMap[userId];
+            }
         }
-        io.emit('getOnlineUsers',Object.keys(userSocketMap));
-    })
-})
+        io.emit('getOnlineUsers', Object.keys(userSocketMap));
+    });
+});
   
 export {app,io,server}
 

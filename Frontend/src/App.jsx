@@ -52,8 +52,8 @@ const App = () => {
   useEffect(() => {
     if (authUser) {
       const socketInstance = io(SOCKET_URL, {
-        query: {
-          userId: authUser._id
+        auth: {
+          token: authUser.token
         }
       });
      dispatch (setSocket(socketInstance));

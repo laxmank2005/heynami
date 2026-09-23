@@ -30,10 +30,9 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`flex-col h-full bg-white dark:bg-[#111] border-r border-gray-100 dark:border-stone-800 transition-colors duration-300
+      className={`flex-col h-full bg-white dark:bg-[#111] border-r border-gray-100 dark:border-stone-800 transition-colors duration-300 w-full sm:w-[320px] sm:min-w-[320px] shrink-0
         ${selectedUser ? 'hidden sm:flex' : 'flex'}
       `}
-      style={{ width: '300px', minWidth: '300px', flexShrink: 0 }}
     >
       {/* ── Top bar ── */}
       <div className="px-5 pt-6 pb-3 flex items-center justify-between">

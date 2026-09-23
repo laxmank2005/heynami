@@ -8,6 +8,11 @@ import { IoEye, IoEyeOff } from "react-icons/io5";
 import { BsChatDotsFill, BsArrowRight, BsPerson, BsLock, BsArrowLeft, BsEnvelope } from "react-icons/bs";
 import { API_ENDPOINTS } from "../config/api";
 import ThemeToggle from "./ThemeToggle";
+import { 
+  deriveWrappingKey, 
+  unwrapPrivateKey, 
+  exportPublicKey 
+} from "../utils/crypto";
 
 const Login = () => {
   const [user, setUser] = React.useState({
@@ -36,6 +41,31 @@ const Login = () => {
         },
       );
 
+      let decryptedPrivateKeyBase64 = null;
+      try {
+        if (res.data.encryptedPrivateKey && res.data.keySalt && res.data.keyIv) {
+          const wrappingKey = await deriveWrappingKey(user.password, res.data.keySalt);
+          const privateKeyObj = await unwrapPrivateKey(res.data.encryptedPrivateKey, res.data.keyIv, wrappingKey);
+          
+          // Export the raw private key to pkcs8 base64 so we can store it in Redux/localStorage securely on this device
+          const exported = await window.crypto.subtle.exportKey("pkcs8", privateKeyObj);
+          
+          // Helper to convert buffer to base64
+          const arrayBufferToBase64 = (buffer) => {
+            let binary = "";
+            const bytes = new Uint8Array(buffer);
+            for (let i = 0; i < bytes.byteLength; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+          };
+          decryptedPrivateKeyBase64 = arrayBufferToBase64(exported);
+        }
+      } catch (err) {
+        console.error("Failed to decrypt private key. Password might have changed or data is corrupt.", err);
+        toast.error("Warning: Could not unlock chat history. Messages will be unreadable.");
+      }
+
       const userData = {
         _id: res.data._id,
         fullName: res.data.fullName,
@@ -43,6 +73,8 @@ const Login = () => {
         mobile: res.data.mobile,
         profilePhoto: res.data.profilePhoto,
         token: res.data.token,
+        publicKey: res.data.publicKey,
+        privateKey: decryptedPrivateKeyBase64, // Local plaintext key
       };
 
       dispatch(setAuthUser(userData));
@@ -74,10 +106,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex font-[Inter,system-ui,sans-serif] bg-gray-50 dark:bg-[#0d0d0d] transition-colors duration-300">
+    <div className="min-h-screen flex flex-col font-[Inter,system-ui,sans-serif] bg-gray-50 dark:bg-[#0d0d0d] transition-colors duration-300">
 
       {/* ── Top Navigation (Back to Home & Theme Toggle) ── */}
-      <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-50">
+      <div className="w-full p-6 flex justify-between items-center z-50">
         <Link 
           to="/" 
           className="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-900 dark:text-stone-400 dark:hover:text-white transition-colors bg-white/50 dark:bg-[#111]/50 backdrop-blur-md px-4 py-2.5 rounded-xl border border-gray-200/50 dark:border-stone-800"
@@ -89,7 +121,7 @@ const Login = () => {
       </div>
 
       {/* ── Right: Login Form ── */}
-      <div className="flex-1 flex items-center justify-center relative overflow-hidden pt-20 sm:pt-0">
+      <div className="flex-1 flex items-center justify-center relative overflow-hidden py-10 sm:py-0">
         {/* Subtle background blob */}
         <div className="absolute top-0 right-0 w-[400px] h-[400px] rounded-full bg-violet-100/50 dark:bg-violet-900/20 blur-[100px] -z-0" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-violet-100/40 dark:bg-violet-900/20 blur-[80px] -z-0" />
@@ -130,7 +162,7 @@ const Login = () => {
                     ? 'border-violet-500 dark:border-violet-500 shadow-sm shadow-violet-100 dark:shadow-violet-900/20 bg-white dark:bg-stone-900' 
                     : 'border-gray-200 dark:border-stone-700 hover:border-gray-300 dark:hover:border-stone-600 bg-gray-50 dark:bg-stone-900/50'
                 }`}>
-                  <div className="pl-4 pr-2">
+                  <div className="pl-4 pr-2 shrink-0 pointer-events-none">
                     <BsEnvelope className={`text-lg transition-colors duration-200 ${
                       focused === 'email' ? 'text-violet-500' : 'text-gray-400 dark:text-stone-500'
                     }`} />
@@ -140,7 +172,7 @@ const Login = () => {
                     onChange={(e) => setUser({ ...user, email: e.target.value })}
                     onFocus={() => setFocused('email')}
                     onBlur={() => setFocused('')}
-                    className="flex-1 px-2 py-3 bg-transparent outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-stone-500"
+                    className="w-full flex-1 min-w-0 px-2 pr-4 py-3 bg-transparent outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-stone-500"
                     type="email"
                     placeholder="Enter your email"
                     required
@@ -158,7 +190,7 @@ const Login = () => {
                     ? 'border-violet-500 dark:border-violet-500 shadow-sm shadow-violet-100 dark:shadow-violet-900/20 bg-white dark:bg-stone-900' 
                     : 'border-gray-200 dark:border-stone-700 hover:border-gray-300 dark:hover:border-stone-600 bg-gray-50 dark:bg-stone-900/50'
                 }`}>
-                  <div className="pl-4 pr-2">
+                  <div className="pl-4 pr-2 shrink-0 pointer-events-none">
                     <BsLock className={`text-lg transition-colors duration-200 ${
                       focused === 'password' ? 'text-violet-500' : 'text-gray-400 dark:text-stone-500'
                     }`} />
@@ -168,7 +200,7 @@ const Login = () => {
                     onChange={(e) => setUser({ ...user, password: e.target.value })}
                     onFocus={() => setFocused('password')}
                     onBlur={() => setFocused('')}
-                    className="flex-1 px-2 py-3 bg-transparent outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-stone-500"
+                    className="w-full flex-1 min-w-0 px-2 pr-11 py-3 bg-transparent outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-stone-500"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     required
@@ -176,7 +208,8 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="pr-4 pl-2 text-gray-400 hover:text-gray-600 dark:hover:text-stone-300 transition-colors"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-stone-300 transition-colors p-1 flex items-center justify-center focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <IoEyeOff size={18} /> : <IoEye size={18} />}
                   </button>
