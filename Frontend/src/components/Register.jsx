@@ -17,6 +17,7 @@ import {
 import { HiOutlineUser } from "react-icons/hi2";
 import { API_ENDPOINTS } from "../config/api";
 import ThemeToggle from "./ThemeToggle";
+import CountrySelect from "./CountrySelect";
 import { 
   generateKeyPair, 
   generateRandomBytes, 
@@ -86,8 +87,8 @@ const Register = () => {
       return false;
     }
 
-    if (user.mobile.length !== 10) {
-      toast.error("Mobile number must be exactly 10 digits.");
+    if (user.mobile.length < 6 || user.mobile.length > 15) {
+      toast.error("Please enter a valid mobile number (6-15 digits).");
       return false;
     }
 
@@ -479,32 +480,23 @@ const Register = () => {
                           ? 'border-violet-500 dark:border-violet-500 shadow-sm shadow-violet-100 dark:shadow-violet-900/20 bg-white dark:bg-stone-900' 
                           : 'border-gray-200 dark:border-stone-700 hover:border-gray-300 dark:hover:border-stone-600 bg-gray-50 dark:bg-stone-900/50'
                       }`}>
-                        <div className="pl-3 pr-1.5 flex items-center border-r border-gray-200 dark:border-stone-700">
-                          <BsTelephone className={`text-sm mr-1.5 transition-colors duration-200 ${
-                            focused === 'mobile' ? 'text-violet-500' : 'text-gray-400 dark:text-stone-500'
-                          }`} />
-                          <select 
-                            value={countryCode}
-                            onChange={(e) => setCountryCode(e.target.value)}
-                            className="bg-transparent text-sm text-gray-700 dark:text-stone-300 outline-none cursor-pointer appearance-none pr-1"
-                          >
-                            <option value="+91">+91 (IN)</option>
-                            <option value="+1">+1 (US)</option>
-                            <option value="+44">+44 (UK)</option>
-                            <option value="+61">+61 (AU)</option>
-                          </select>
+                        <div className="pl-1 pr-1 flex items-center border-r border-gray-200 dark:border-stone-700">
+                          <CountrySelect 
+                            value={countryCode} 
+                            onChange={(code) => setCountryCode(code)} 
+                          />
                         </div>
                         <input
                           value={user.mobile}
                           onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, '');
-                            if (val.length <= 10) setUser({ ...user, mobile: val });
+                            if (val.length <= 15) setUser({ ...user, mobile: val });
                           }}
                           onFocus={() => setFocused('mobile')}
                           onBlur={() => setFocused('')}
-                          className="flex-1 px-2 py-2.5 bg-transparent outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-stone-500 min-w-0"
+                          className="flex-1 px-3 py-2.5 bg-transparent outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-400 dark:placeholder:text-stone-500 min-w-0"
                           type="tel"
-                          placeholder="XXXXXXXXXX"
+                          placeholder="Phone number"
                           required
                         />
                       </div>

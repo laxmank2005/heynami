@@ -23,9 +23,9 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "Please enter a valid email address." });
     }
 
-    const mobileRegex = /^\+\d{1,3}\d{10}$/;
+    const mobileRegex = /^\+\d{1,4}\d{6,14}$/;
     if (!mobileRegex.test(mobile)) {
-      return res.status(400).json({ message: "Invalid mobile number format. Must include country code and 10 digits." });
+      return res.status(400).json({ message: "Invalid mobile number format. Must include country code and valid phone number." });
     }
 
     if (password.length < 6) {
