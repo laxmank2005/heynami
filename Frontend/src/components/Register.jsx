@@ -140,6 +140,11 @@ const Register = () => {
         },
       );
       if (res.data.success) {
+        if (res.data.autoVerified) {
+          toast.success(res.data.message || "Account created! Redirecting to login...");
+          setTimeout(() => navigate("/login"), 1000);
+          return;
+        }
         setRegisteredEmail(user.email);
         toast.success(res.data.message || "OTP sent to your email!");
         setIsOtpScreen(true);

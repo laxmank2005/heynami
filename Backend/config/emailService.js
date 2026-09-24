@@ -6,17 +6,25 @@ import nodemailer from "nodemailer";
  */
 const createTransporter = () =>
   nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    connectionTimeout: 8000,
+    greetingTimeout: 8000,
+    socketTimeout: 8000,
   });
 
 /**
  * Send OTP verification email with a premium branded template
  */
 export const sendOTPEmail = async (toEmail, otp, fullName = "there") => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error("EMAIL_USER or EMAIL_PASS environment variable is missing.");
+  }
   // Split OTP into individual digits for the digit-box design
   const digits = otp.toString().split("");
 
