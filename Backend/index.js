@@ -36,10 +36,6 @@ const isAllowedOrigin = (origin) => {
   if (!origin) return true; // Allow curl, Postman, server-to-server requests
   if (
     origin === FRONTEND_URL ||
-    origin === "https://secure-chats.vercel.app" ||
-    origin === "https://heynami.vercel.app" ||
-    origin === "https://anime-k9a7.onrender.com" ||
-    origin === "https://heynami.onrender.com" ||
     origin === "http://localhost:5173" ||
     origin === "http://localhost:4173" ||
     origin === "http://localhost:3000" ||

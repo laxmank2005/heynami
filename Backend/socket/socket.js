@@ -16,10 +16,6 @@ const isAllowedSocketOrigin = (origin) => {
   if (!origin) return true;
   return (
     origin === frontendUrl ||
-    origin === "https://secure-chats.vercel.app" ||
-    origin === "https://heynami.vercel.app" ||
-    origin === "https://anime-k9a7.onrender.com" ||
-    origin === "https://heynami.onrender.com" ||
     origin === "http://localhost:5173" ||
     origin === "http://localhost:4173" ||
     origin.endsWith(".vercel.app")
