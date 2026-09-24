@@ -7,10 +7,10 @@ import { toast } from "react-hot-toast";
 import { API_ENDPOINTS } from "../config/api";
 import { 
   importPublicKey, 
-  base64ToArrayBuffer, 
   deriveSharedSecret, 
   encryptMessage 
 } from "../utils/crypto";
+import { getPrivateKey } from "../utils/keyStore";
 import EmojiPicker from "emoji-picker-react";
 import { BsEmojiSmile, BsX } from "react-icons/bs";
 
@@ -73,13 +73,14 @@ const SendInput = () => {
         try {
             let messageToSend = text;
             let isMessageEncrypted = false;
-            if (selectedUser?.publicKey && authUser?.privateKey) {
-                const theirPublicKey = await importPublicKey(selectedUser.publicKey);
-                const myPrivateKeyBuffer = base64ToArrayBuffer(authUser.privateKey);
-                const myPrivateKey = await window.crypto.subtle.importKey("pkcs8", myPrivateKeyBuffer, { name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey", "deriveBits"]);
-                const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
-                messageToSend = await encryptMessage(text, sharedSecret);
-                isMessageEncrypted = true;
+            if (selectedUser?.publicKey) {
+                const myPrivateKey = authUser?._id ? await getPrivateKey(authUser._id.toString()) : null;
+                if (myPrivateKey) {
+                    const theirPublicKey = await importPublicKey(selectedUser.publicKey);
+                    const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
+                    messageToSend = await encryptMessage(text, sharedSecret);
+                    isMessageEncrypted = true;
+                }
             }
 
             axios.defaults.withCredentials = true;
@@ -120,21 +121,15 @@ const SendInput = () => {
       let messageToSend = text;
       let isMessageEncrypted = false;
 
-      if (selectedUser?.publicKey && authUser?.privateKey) {
+      if (selectedUser?.publicKey) {
         try {
-          const theirPublicKey = await importPublicKey(selectedUser.publicKey);
-          const myPrivateKeyBuffer = base64ToArrayBuffer(authUser.privateKey);
-          const myPrivateKey = await window.crypto.subtle.importKey(
-            "pkcs8",
-            myPrivateKeyBuffer,
-            { name: "ECDH", namedCurve: "P-256" },
-            true,
-            ["deriveKey", "deriveBits"]
-          );
-          
-          const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
-          messageToSend = await encryptMessage(text, sharedSecret);
-          isMessageEncrypted = true;
+          const myPrivateKey = authUser?._id ? await getPrivateKey(authUser._id.toString()) : null;
+          if (myPrivateKey) {
+            const theirPublicKey = await importPublicKey(selectedUser.publicKey);
+            const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
+            messageToSend = await encryptMessage(text, sharedSecret);
+            isMessageEncrypted = true;
+          }
         } catch (cryptoErr) {
           console.error("Encryption failed:", cryptoErr);
           toast.error("Encryption failed. Message not sent.");

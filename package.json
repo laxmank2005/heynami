@@ -1,23 +1,25 @@
 {
-  "name": "chattingapp",
+  "name": "heynami",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A secure, E2EE real-time chat application.",
+  "main": "Backend/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix Backend\" \"npm run dev --prefix Frontend\""
+    "dev": "concurrently \"npm run dev --prefix Backend\" \"npm run dev --prefix Frontend\"",
+    "build": "npm install --prefix Backend && npm install --prefix Frontend && npm run build --prefix Frontend",
+    "start": "npm start --prefix Backend"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/laxmank2005/Chatting-Application.git"
+    "url": "git+https://github.com/laxmank2005/heynami.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Laxman Karbhari",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/laxmank2005/Chatting-Application/issues"
+    "url": "https://github.com/laxmank2005/heynami/issues"
   },
-  "homepage": "https://github.com/laxmank2005/Chatting-Application#readme",
+  "homepage": "https://github.com/laxmank2005/heynami#readme",
   "devDependencies": {
     "concurrently": "^10.0.4"
   }

@@ -6,10 +6,10 @@ import { setMessages } from "../redux/messageSlice";
 import { API_ENDPOINTS } from "../config/api";
 import { 
   importPublicKey, 
-  base64ToArrayBuffer, 
   deriveSharedSecret, 
   decryptMessage 
 } from "../utils/crypto";
+import { getPrivateKey } from "../utils/keyStore";
 
 // NOTE: Hook must NOT be async - async work happens inside useEffect
 const useGetMessages = () => {
@@ -34,17 +34,12 @@ const useGetMessages = () => {
         let messages = res.data;
         
         // --- E2EE Decryption ---
-        if (messages.length > 0 && selectedUser?.publicKey && authUser?.privateKey) {
+        // Load private key securely from IndexedDB (never from localStorage)
+        const myPrivateKey = authUser?._id ? await getPrivateKey(authUser._id.toString()) : null;
+
+        if (messages.length > 0 && selectedUser?.publicKey && myPrivateKey) {
           try {
             const theirPublicKey = await importPublicKey(selectedUser.publicKey);
-            const myPrivateKeyBuffer = base64ToArrayBuffer(authUser.privateKey);
-            const myPrivateKey = await window.crypto.subtle.importKey(
-              "pkcs8",
-              myPrivateKeyBuffer,
-              { name: "ECDH", namedCurve: "P-256" },
-              true,
-              ["deriveKey", "deriveBits"]
-            );
             const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
             
             // Decrypt all messages concurrently

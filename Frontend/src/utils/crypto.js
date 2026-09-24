@@ -113,7 +113,7 @@ export const unwrapPrivateKey = async (encryptedPrivateKeyBase64, ivBase64, wrap
     "pkcs8",
     decryptedBuffer,
     { name: "ECDH", namedCurve: "P-256" },
-    true,
+    false, // NOT extractable — raw bytes can never be read from JS
     ["deriveKey", "deriveBits"]
   );
 };

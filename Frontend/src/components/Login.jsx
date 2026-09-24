@@ -13,6 +13,7 @@ import {
   unwrapPrivateKey, 
   exportPublicKey 
 } from "../utils/crypto";
+import { savePrivateKey } from "../utils/keyStore";
 
 const Login = () => {
   const [user, setUser] = React.useState({
@@ -41,29 +42,16 @@ const Login = () => {
         },
       );
 
-      let decryptedPrivateKeyBase64 = null;
+      let privateKeyObj = null;
       try {
         if (res.data.encryptedPrivateKey && res.data.keySalt && res.data.keyIv) {
           const wrappingKey = await deriveWrappingKey(user.password, res.data.keySalt);
-          const privateKeyObj = await unwrapPrivateKey(res.data.encryptedPrivateKey, res.data.keyIv, wrappingKey);
-          
-          // Export the raw private key to pkcs8 base64 so we can store it in Redux/localStorage securely on this device
-          const exported = await window.crypto.subtle.exportKey("pkcs8", privateKeyObj);
-          
-          // Helper to convert buffer to base64
-          const arrayBufferToBase64 = (buffer) => {
-            let binary = "";
-            const bytes = new Uint8Array(buffer);
-            for (let i = 0; i < bytes.byteLength; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-            return btoa(binary);
-          };
-          decryptedPrivateKeyBase64 = arrayBufferToBase64(exported);
+          // unwrapPrivateKey now creates a NON-extractable CryptoKey
+          privateKeyObj = await unwrapPrivateKey(res.data.encryptedPrivateKey, res.data.keyIv, wrappingKey);
         }
       } catch (err) {
-        console.error("Failed to decrypt private key. Password might have changed or data is corrupt.", err);
-        toast.error("Warning: Could not unlock chat history. Messages will be unreadable.");
+        console.error("Failed to decrypt private key.", err);
+        toast.error("Warning: Could not unlock E2E encryption. Messages may be unreadable.");
       }
 
       const userData = {
@@ -74,8 +62,17 @@ const Login = () => {
         profilePhoto: res.data.profilePhoto,
         token: res.data.token,
         publicKey: res.data.publicKey,
-        privateKey: decryptedPrivateKeyBase64, // Local plaintext key
+        // privateKey is intentionally NOT stored here — it lives in IndexedDB only
       };
+
+      // Securely store the CryptoKey in IndexedDB (not localStorage)
+      if (privateKeyObj && res.data._id) {
+        try {
+          await savePrivateKey(res.data._id.toString(), privateKeyObj);
+        } catch (e) {
+          console.error("Failed to save private key to IndexedDB:", e);
+        }
+      }
 
       dispatch(setAuthUser(userData));
       localStorage.setItem("authUser", JSON.stringify(userData));

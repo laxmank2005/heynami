@@ -1,26 +1,36 @@
 import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addMessage, updateMessageStatus, markAllMessagesRead, updateMessage, updateMessageReactions } from "../redux/messageSlice";
-import { updateUserList } from "../redux/userSlice";
+import { updateUserList, clearUnread } from "../redux/userSlice";
 import { 
   importPublicKey, 
-  base64ToArrayBuffer, 
   deriveSharedSecret, 
   decryptMessage 
 } from "../utils/crypto";
+import { getPrivateKey } from "../utils/keyStore";
+import { API_ENDPOINTS } from "../config/api";
 
 const useGetRealTimeMessage = () => {
     const { socket } = useSelector(store => store.socket);
-    const { selectedUser, otherUsers } = useSelector(store => store.user);
+    const { selectedUser, otherUsers, authUser } = useSelector(store => store.user);
     const dispatch = useDispatch();
 
     // Use refs so the async handler always has the latest values without stale closures
     const selectedUserRef = useRef(selectedUser);
     const otherUsersRef = useRef(otherUsers);
+    const authUserRef = useRef(authUser);
     selectedUserRef.current = selectedUser;
     otherUsersRef.current = otherUsers;
+    authUserRef.current = authUser;
 
     useEffect(() => {
+        // Helper: load private key from IndexedDB once per handler invocation
+        const loadMyPrivateKey = async () => {
+            const userId = authUserRef.current?._id?.toString();
+            if (!userId) return null;
+            return await getPrivateKey(userId);
+        };
+
         const handleNewMessage = async (newMessage) => {
             // Normalize IDs to strings immediately — prevents ObjectId vs string issues
             const senderIdStr = newMessage.senderId?.toString();
@@ -33,23 +43,15 @@ const useGetRealTimeMessage = () => {
             let decryptedText = newMessage.message;
             if (newMessage.isEncrypted) {
                 try {
-                    const authUser = JSON.parse(localStorage.getItem("authUser"));
                     // Find sender in otherUsers using string comparison
                     const sender = (otherUsersRef.current || []).find(
                         u => u._id?.toString() === senderIdStr
                     ) || newMessage.senderObj;
                     
-                    if (sender?.publicKey && authUser?.privateKey) {
+                    const myPrivateKey = await loadMyPrivateKey();
+
+                    if (sender?.publicKey && myPrivateKey) {
                         const theirPublicKey = await importPublicKey(sender.publicKey);
-                        const myPrivateKeyBuffer = base64ToArrayBuffer(authUser.privateKey);
-                        const myPrivateKey = await window.crypto.subtle.importKey(
-                            "pkcs8",
-                            myPrivateKeyBuffer,
-                            { name: "ECDH", namedCurve: "P-256" },
-                            true,
-                            ["deriveKey", "deriveBits"]
-                        );
-                        
                         const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
                         decryptedText = await decryptMessage(newMessage.message, sharedSecret);
                     }
@@ -69,13 +71,14 @@ const useGetRealTimeMessage = () => {
             if (isCurrentlySelected) {
                 dispatch(addMessage(finalMessage));
                 
-                // Real-time Read Receipt: The user is looking at the chat right now, so mark this message as read!
+                // Real-time Read Receipt: user is actively looking at the chat
                 try {
                     const authUser = JSON.parse(localStorage.getItem("authUser"));
                     fetch(API_ENDPOINTS.MESSAGE.MARK_READ(senderIdStr), {
                         method: "PUT",
                         headers: { Authorization: `Bearer ${authUser?.token}` }
                     });
+                    dispatch(clearUnread(senderIdStr));
                 } catch (err) {
                     console.error("Failed to emit real-time read receipt");
                 }
@@ -106,22 +109,14 @@ const useGetRealTimeMessage = () => {
             
             if (isEncrypted) {
                 try {
-                    const authUser = JSON.parse(localStorage.getItem("authUser"));
                     const sender = (otherUsersRef.current || []).find(
                         u => u._id?.toString() === senderId?.toString()
                     );
                     
-                    if (sender?.publicKey && authUser?.privateKey) {
+                    const myPrivateKey = await loadMyPrivateKey();
+
+                    if (sender?.publicKey && myPrivateKey) {
                         const theirPublicKey = await importPublicKey(sender.publicKey);
-                        const myPrivateKeyBuffer = base64ToArrayBuffer(authUser.privateKey);
-                        const myPrivateKey = await window.crypto.subtle.importKey(
-                            "pkcs8",
-                            myPrivateKeyBuffer,
-                            { name: "ECDH", namedCurve: "P-256" },
-                            true,
-                            ["deriveKey", "deriveBits"]
-                        );
-                        
                         const sharedSecret = await deriveSharedSecret(myPrivateKey, theirPublicKey);
                         decryptedText = await decryptMessage(data.message, sharedSecret);
                     }
