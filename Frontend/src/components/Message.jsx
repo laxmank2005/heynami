@@ -149,7 +149,7 @@ const Message = ({ message }) => {
         )}
 
         {/* Bubble Row (Actions + Bubble) */}
-        <div className="relative flex items-center group w-full justify-end">
+        <div className={`relative flex items-center group w-full ${isMyMessage ? "justify-end" : "justify-start"}`}>
             
             {/* Actions Menu (Left side for MY messages) */}
             {isMyMessage && showActions && !message.isDeleted && (

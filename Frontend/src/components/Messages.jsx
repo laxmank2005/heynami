@@ -24,13 +24,34 @@ const Messages = () => {
     >
       {/* Loading skeleton */}
       {messages === null && (
-        <div className="flex flex-col gap-4">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className={`flex items-end gap-2 ${i % 2 === 0 ? '' : 'flex-row-reverse'}`}>
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-stone-800 animate-pulse flex-shrink-0" />
-              <div className={`h-9 rounded-2xl bg-gray-100 dark:bg-stone-800 animate-pulse ${i % 2 === 0 ? 'w-48' : 'w-36'}`} />
-            </div>
-          ))}
+        <div className="flex flex-col gap-6 pt-4">
+          {[...Array(6)].map((_, i) => {
+            const isMyMessage = i % 2 !== 0;
+            const bubbleWidths = ['w-32', 'w-48', 'w-64', 'w-40', 'w-56', 'w-36'];
+            
+            return (
+              <div key={i} className={`flex items-start gap-2.5 ${isMyMessage ? 'flex-row-reverse' : ''}`}>
+                {!isMyMessage && (
+                  <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-stone-800 animate-pulse flex-shrink-0 mt-0.5" />
+                )}
+                
+                <div className={`flex flex-col gap-1 ${isMyMessage ? 'items-end' : 'items-start'}`}>
+                  {/* Sender Name & Time Skeleton */}
+                  <div className="flex items-center gap-2 px-1 mb-0.5">
+                    <div className="h-3 w-12 bg-gray-200 dark:bg-stone-800 rounded animate-pulse" />
+                    <div className="h-2.5 w-10 bg-gray-100 dark:bg-stone-800/60 rounded animate-pulse" />
+                  </div>
+                  
+                  {/* Chat Bubble Skeleton */}
+                  <div className={`h-10 rounded-2xl animate-pulse ${
+                    isMyMessage 
+                      ? 'bg-violet-100 dark:bg-violet-900/20 rounded-br-sm' 
+                      : 'bg-gray-100 dark:bg-stone-800 rounded-bl-sm'
+                  } ${bubbleWidths[i]}`} />
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
