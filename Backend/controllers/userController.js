@@ -97,10 +97,10 @@ export const register = async (req, res) => {
       email,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Registration Error:", error);
     return res.status(500).json({
-      message: "Internal Server Error",
-      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+      message: error.message || "Internal Server Error",
+      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
     });
   }
 };
