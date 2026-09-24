@@ -16,7 +16,6 @@ import {
 } from "react-icons/bs";
 import { HiOutlineUser } from "react-icons/hi2";
 import { API_ENDPOINTS } from "../config/api";
-import ThemeToggle from "./ThemeToggle";
 import CountrySelect from "./CountrySelect";
 import { 
   generateKeyPair, 
@@ -266,7 +265,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex flex-col font-[Inter,system-ui,sans-serif] bg-gray-50 dark:bg-[#0d0d0d] transition-colors duration-300">
 
-      {/* ── Top Navigation (Back to Home & Theme Toggle) ── */}
+      {/* ── Top Navigation (Back to Home) ── */}
       <div className="w-full px-5 py-4 sm:p-6 flex justify-between items-center z-50 absolute top-0 left-0">
         <Link 
           to="/landing" 
@@ -275,7 +274,6 @@ const Register = () => {
           <BsArrowLeft className="text-lg" />
           <span className="hidden sm:inline">Back to home</span>
         </Link>
-        <ThemeToggle />
       </div>
 
       {/* ── Center Content ── */}

@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { BsChatDotsFill, BsArrowRight } from "react-icons/bs";
-import ThemeToggle from "./ThemeToggle";
 
 const LandingPage = () => {
   const { authUser } = useSelector((store) => store.user);
@@ -52,7 +51,6 @@ const LandingPage = () => {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            <ThemeToggle className="!p-2 border-none !bg-transparent hover:!bg-gray-200 dark:hover:!bg-stone-800 shadow-none !text-gray-600 dark:!text-stone-300" />
             <Link
               to="/login"
               className="hidden sm:block px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-stone-300 hover:text-gray-900 dark:hover:text-white transition-colors"

@@ -87,9 +87,6 @@ const CountrySelect = ({ value, onChange, disabled = false }) => {
         <span className="text-sm font-semibold tracking-tight text-gray-800 dark:text-stone-200">
           {selectedCountry.dialCode}
         </span>
-        <span className="text-[11px] font-medium text-gray-400 dark:text-stone-500 uppercase">
-          ({selectedCountry.code})
-        </span>
         <BsChevronDown
           className={`text-[11px] text-gray-400 group-hover:text-gray-600 dark:group-hover:text-stone-300 transition-transform duration-200 ${
             isOpen ? "rotate-180 text-violet-500" : ""
@@ -149,9 +146,6 @@ const CountrySelect = ({ value, onChange, disabled = false }) => {
                       </span>
                       <span className="text-xs font-medium truncate text-gray-900 dark:text-stone-200 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                         {country.name}
-                      </span>
-                      <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-stone-800 text-gray-500 dark:text-stone-400 flex-shrink-0">
-                        {country.code}
                       </span>
                     </div>
 
