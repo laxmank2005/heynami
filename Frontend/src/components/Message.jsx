@@ -10,6 +10,7 @@ const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🙏"];
 
 const Message = ({ message }) => {
   const scroll = useRef();
+  const containerRef = useRef();
   const dispatch = useDispatch();
   
   const { authUser, selectedUser } = useSelector(store => store.user);
@@ -30,6 +31,23 @@ const Message = ({ message }) => {
   useEffect(() => {
     scroll.current?.scrollIntoView({ behavior: "smooth" });
   }, [message]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setShowActions(false);
+      }
+    };
+    if (showActions) {
+      document.addEventListener("mousedown", handleClickOutside);
+      // Also handle touch events for mobile
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [showActions]);
 
   const timeStr = message?.createdAt
     ? new Date(message.createdAt).toLocaleTimeString("en-US", {
@@ -108,6 +126,7 @@ const Message = ({ message }) => {
 
       {/* Bubble group */}
       <div
+        ref={containerRef}
         className={`flex flex-col gap-1 max-w-[75%] ${isMyMessage ? "items-end" : "items-start"}`}
       >
         {/* Sender label + time */}
