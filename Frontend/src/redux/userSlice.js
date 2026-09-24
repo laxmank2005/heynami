@@ -5,7 +5,7 @@ const userSlice = createSlice({
   initialState: {
     authUser: localStorage.getItem("authUser") ? JSON.parse(localStorage.getItem("authUser")) : null,
     otherUsers: null,   // null = not yet loaded, [] = loaded but empty
-    selectedUser: null,
+    selectedUser: sessionStorage.getItem("selectedUser") ? JSON.parse(sessionStorage.getItem("selectedUser")) : null,
     onlineUsers: [],
   },
   reducers: {
@@ -20,6 +20,12 @@ const userSlice = createSlice({
     },
     setSelectedUser: (state, action) => {
       state.selectedUser = action.payload;
+      // Persist to sessionStorage so refresh keeps the chat open
+      if (action.payload) {
+        sessionStorage.setItem("selectedUser", JSON.stringify(action.payload));
+      } else {
+        sessionStorage.removeItem("selectedUser");
+      }
     },
     updateUserList: (state, action) => {
       const { userId, isUnread, lastMessage, lastMessageTime, userObj } = action.payload;
@@ -56,4 +62,5 @@ const userSlice = createSlice({
 
 export const { setAuthUser, setOtherUsers, setSelectedUser, setOnlineUsers, updateUserList, clearUnread } = userSlice.actions;
 
-export default userSlice.reducer;
+export default userSlice.reducer;
+
