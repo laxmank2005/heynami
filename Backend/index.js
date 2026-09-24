@@ -30,22 +30,34 @@ app.use(helmet({
   contentSecurityPolicy: isProduction ? undefined : false,
 }));
 
-// 2. CORS — allow Vercel frontend + localhost dev + Render itself
-const allowedOrigins = [
-  FRONTEND_URL,                            // e.g. https://secure-chats.vercel.app
-  "https://heynami.onrender.com",          // backend's own domain (self-requests)
-  "http://localhost:5173",                 // local dev (vite)
-  "http://localhost:4173",                 // local preview
-];
+// 2. CORS — allow Vercel frontend + all .vercel.app + localhost dev + Render
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // Allow curl, Postman, server-to-server requests
+  if (
+    origin === FRONTEND_URL ||
+    origin === "https://secure-chats.vercel.app" ||
+    origin === "https://heynami.vercel.app" ||
+    origin === "https://anime-k9a7.onrender.com" ||
+    origin === "https://heynami.onrender.com" ||
+    origin === "http://localhost:5173" ||
+    origin === "http://localhost:4173" ||
+    origin === "http://localhost:3000" ||
+    origin.endsWith(".vercel.app") // Automatically allows all Vercel deployments!
+  ) {
+    return true;
+  }
+  return false;
+};
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (curl, Postman, mobile apps)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (isAllowedOrigin(origin)) {
+      return callback(null, true);
+    }
     callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
 };
 app.use(cors(corsOptions));

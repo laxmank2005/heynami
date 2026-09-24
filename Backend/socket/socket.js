@@ -12,14 +12,28 @@ const frontendUrl = process.env.FRONTEND_URL
   ? (process.env.FRONTEND_URL.endsWith('/') ? process.env.FRONTEND_URL.slice(0, -1) : process.env.FRONTEND_URL)
   : 'http://localhost:5173';
 
+const isAllowedSocketOrigin = (origin) => {
+  if (!origin) return true;
+  return (
+    origin === frontendUrl ||
+    origin === "https://secure-chats.vercel.app" ||
+    origin === "https://heynami.vercel.app" ||
+    origin === "https://anime-k9a7.onrender.com" ||
+    origin === "https://heynami.onrender.com" ||
+    origin === "http://localhost:5173" ||
+    origin === "http://localhost:4173" ||
+    origin.endsWith(".vercel.app")
+  );
+};
+
 const io = new Server(server, {
     cors: {
-        origin: [
-            frontendUrl,                           // e.g. https://secure-chats.vercel.app
-            "https://heynami.onrender.com",        // Render backend itself
-            "http://localhost:5173",               // local Vite dev
-            "http://localhost:4173",               // local preview
-        ],
+        origin: (origin, callback) => {
+            if (isAllowedSocketOrigin(origin)) {
+                return callback(null, true);
+            }
+            callback(new Error(`Socket CORS blocked for origin: ${origin}`));
+        },
         methods: ['GET', 'POST'],
         credentials: true
     },
