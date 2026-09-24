@@ -50,16 +50,16 @@ const LandingPage = () => {
             </span>
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3">
             <Link
               to="/login"
-              className="hidden sm:block px-5 py-2.5 text-sm font-bold text-gray-600 dark:text-stone-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-700 dark:text-stone-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-stone-800/60"
             >
               Log in
             </Link>
             <Link
               to="/register"
-              className="px-6 py-2.5 text-sm font-bold text-white bg-violet-600 rounded-full hover:bg-violet-700 transition-colors"
+              className="px-3.5 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-violet-600 rounded-full hover:bg-violet-700 transition-colors shadow-sm"
             >
               Get started
             </Link>
@@ -104,14 +104,14 @@ const LandingPage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
-              className="flex flex-col sm:flex-row gap-4 pt-4 justify-center"
+              className="flex justify-center pt-2"
             >
               <Link
                 to="/register"
-                className="group inline-flex items-center justify-center gap-2 bg-violet-600 text-white px-8 py-4 rounded-full font-bold text-[15px] hover:bg-violet-700 transition-colors shadow-lg shadow-violet-600/20"
+                className="group inline-flex items-center justify-center gap-2 bg-violet-600 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-full font-semibold text-sm hover:bg-violet-700 transition-all shadow-md shadow-violet-600/20 hover:shadow-violet-600/30 hover:scale-[1.02]"
               >
                 Start chatting free
-                <BsArrowRight className="group-hover:translate-x-1 transition-transform" />
+                <BsArrowRight className="text-xs group-hover:translate-x-1 transition-transform" />
               </Link>
             </motion.div>
 
