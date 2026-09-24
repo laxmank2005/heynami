@@ -109,8 +109,6 @@ const Message = ({ message }) => {
       {/* Bubble group */}
       <div
         className={`flex flex-col gap-1 max-w-[75%] ${isMyMessage ? "items-end" : "items-start"}`}
-        onMouseEnter={() => setShowActions(true)}
-        onMouseLeave={() => setShowActions(false)}
       >
         {/* Sender label + time */}
         {!isMyMessage && (
@@ -140,9 +138,6 @@ const Message = ({ message }) => {
         {repliedMessage && !message.isDeleted && (
           <div 
             className={`text-xs p-2 rounded-lg bg-gray-100 dark:bg-stone-800 text-gray-500 dark:text-stone-400 mb-0.5 max-w-full truncate border-l-4 cursor-pointer hover:opacity-80 transition ${isMyMessage ? "border-violet-500" : "border-gray-400"}`}
-            onClick={() => {
-              // Can optionally scroll to the original message if we wanted, using its ID
-            }}
           >
              <span className="font-semibold">{repliedMessage.senderId.toString() === authUser?._id?.toString() ? "You" : selectedUser?.fullName}:</span> {repliedMessage.isDeleted ? "🚫 This message was deleted" : repliedMessage.message}
           </div>
@@ -151,28 +146,30 @@ const Message = ({ message }) => {
         {/* Bubble Row (Actions + Bubble) */}
         <div className={`relative flex items-center group w-full ${isMyMessage ? "justify-end" : "justify-start"}`}>
             
-            {/* Actions Menu (Left side for MY messages) */}
-            {isMyMessage && showActions && !message.isDeleted && (
-                <div className="flex items-center gap-1 bg-white dark:bg-stone-800 shadow-sm border border-gray-100 dark:border-stone-700 rounded-lg p-1 mr-2 z-10 shrink-0">
+            {/* Actions Menu (Absolute overlay to prevent layout shift) */}
+            {showActions && !message.isDeleted && (
+                <div className={`absolute top-full mt-1 ${isMyMessage ? "right-0" : "left-0"} flex items-center gap-1 bg-white dark:bg-stone-800 shadow-xl border border-gray-100 dark:border-stone-700 rounded-lg p-1 z-50`}>
                     <div className="relative flex items-center group/react">
                         <button className="p-1.5 text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-stone-700 rounded transition peer"><BsEmojiSmile /></button>
-                        <div className="absolute hidden peer-hover:flex hover:flex bottom-full left-1/2 -translate-x-1/2 mb-1 bg-white dark:bg-stone-800 shadow-lg border border-gray-100 dark:border-stone-700 rounded-full p-1 gap-1 z-20">
+                        <div className="absolute hidden peer-hover:flex hover:flex bottom-full left-1/2 -translate-x-1/2 mb-1 bg-white dark:bg-stone-800 shadow-lg border border-gray-100 dark:border-stone-700 rounded-full p-1 gap-1 z-[60]">
                             {QUICK_REACTIONS.map(emoji => (
-                                <button key={emoji} onClick={() => handleReact(emoji)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-stone-700 rounded-full transition text-lg">
+                                <button key={emoji} onClick={(e) => { e.stopPropagation(); handleReact(emoji); setShowActions(false); }} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-stone-700 rounded-full transition text-lg">
                                     {emoji}
                                 </button>
                             ))}
                         </div>
                     </div>
-                    <button onClick={handleReply} className="p-1.5 text-gray-500 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-stone-700 rounded transition"><BsReplyFill /></button>
-                    <button onClick={handleEdit} className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-stone-700 rounded transition"><BsPencilSquare /></button>
-                    <button onClick={handleDeleteClick} disabled={isDeleting} className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-stone-700 rounded transition"><BsTrashFill /></button>
+                    <button onClick={(e) => { e.stopPropagation(); handleReply(); setShowActions(false); }} className="p-1.5 text-gray-500 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-stone-700 rounded transition"><BsReplyFill /></button>
+                    {isMyMessage && <button onClick={(e) => { e.stopPropagation(); handleEdit(); setShowActions(false); }} className="p-1.5 text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-stone-700 rounded transition"><BsPencilSquare /></button>}
+                    {isMyMessage && <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(); setShowActions(false); }} disabled={isDeleting} className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-stone-700 rounded transition"><BsTrashFill /></button>}
                 </div>
             )}
 
             {/* Bubble */}
             <div
-              className={`relative px-4 py-2.5 text-sm break-words leading-relaxed shrink-1 ${
+              onClick={() => setShowActions(!showActions)}
+              onContextMenu={(e) => { e.preventDefault(); setShowActions(!showActions); }}
+              className={`relative px-4 py-2.5 cursor-pointer text-sm break-words leading-relaxed shrink-1 transition-transform active:scale-[0.98] ${
                 message.isDeleted 
                   ? "text-gray-400 dark:text-stone-500 bg-gray-50 dark:bg-stone-800/50 rounded-2xl border border-gray-100 dark:border-stone-700 italic"
                   : isMyMessage
@@ -213,24 +210,6 @@ const Message = ({ message }) => {
                 )}
               </div>
             </div>
-
-            {/* Actions Menu (Right side for OTHER's messages) */}
-            {!isMyMessage && showActions && !message.isDeleted && (
-                <div className="flex items-center gap-1 bg-white dark:bg-stone-800 shadow-sm border border-gray-100 dark:border-stone-700 rounded-lg p-1 ml-2 z-10 shrink-0">
-                    <button onClick={handleReply} className="p-1.5 text-gray-500 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-stone-700 rounded transition"><BsReplyFill /></button>
-                    
-                    <div className="relative flex items-center group/react">
-                        <button className="p-1.5 text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-stone-700 rounded transition peer"><BsEmojiSmile /></button>
-                        <div className="absolute hidden peer-hover:flex hover:flex bottom-full left-1/2 -translate-x-1/2 mb-1 bg-white dark:bg-stone-800 shadow-lg border border-gray-100 dark:border-stone-700 rounded-full p-1 gap-1 z-20">
-                            {QUICK_REACTIONS.map(emoji => (
-                                <button key={emoji} onClick={() => handleReact(emoji)} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-stone-700 rounded-full transition text-lg">
-                                    {emoji}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
 
         {/* Reactions Display */}
