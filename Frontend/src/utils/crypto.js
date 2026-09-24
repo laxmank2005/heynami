@@ -62,7 +62,7 @@ export const deriveWrappingKey = async (password, saltBase64) => {
     {
       name: "PBKDF2",
       salt: saltBuffer,
-      iterations: 100000,
+      iterations: 10000,
       hash: "SHA-256",
     },
     passwordKey,

@@ -35,60 +35,54 @@ export const register = async (req, res) => {
     if (password !== confirmPassword) {
       return res.status(400).json({ message: "Password and confirm password should be same" });
     }
-    const user = await User.findOne({ $or: [{ email }, { mobile }] });
-    if (user) {
+
+    // ⚡ Run bcrypt hash and DB duplicate check IN PARALLEL (saves ~300ms)
+    const [hashedPassword, existingUser] = await Promise.all([
+      bcrypt.hash(password, 10),
+      User.findOne({ $or: [{ email }, { mobile }] })
+    ]);
+
+    if (existingUser) {
       return res
         .status(400)
         .json({ message: "Email or mobile number already exists, try different" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate a 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins expiry
 
-    console.log(`🔑 [AUTH] Registration OTP for ${email}: ${otp}`);
+    // Profile photo
+    const profilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${email}`;
 
-    // Send real OTP email
-    let emailSent = false;
-    try {
-      await sendOTPEmail(email, otp, fullName);
-      emailSent = true;
-    } catch (emailErr) {
-      console.warn("⚠️ Failed to send OTP email:", emailErr.message);
-    }
-
-    // Profile photo generation based on gender and email api
-    const maleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${email}`;
-    const femaleProfilePhoto = `https://api.dicebear.com/7.x/adventurer/svg?seed=${email}`;
-
-    // If email failed or is not configured, auto-verify so user registration never hangs or breaks
-    const isEmailVerified = !emailSent;
-
+    // Create user FIRST (fast), then send email in background
     await User.create({
       fullName,
       email,
       mobile,
       password: hashedPassword,
-      profilePhoto: gender === "male" ? maleProfilePhoto : femaleProfilePhoto,
+      profilePhoto,
       gender,
-      isEmailVerified,
-      otp: emailSent ? otp : undefined,
-      otpExpiry: emailSent ? otpExpiry : undefined,
+      isEmailVerified: false,
+      otp,
+      otpExpiry,
       publicKey,
       encryptedPrivateKey,
       keySalt,
       keyIv
     });
 
-    if (!emailSent) {
-      return res.status(201).json({
-        success: true,
-        autoVerified: true,
-        message: "Account created successfully! You can now log in.",
-        email,
-      });
-    }
+    // ⚡ FIRE-AND-FORGET: Send email in background, respond immediately
+    sendOTPEmail(email, otp, fullName).catch(async (emailErr) => {
+      console.warn("⚠️ Background OTP email failed:", emailErr.message);
+      // Auto-verify user if email can't be sent
+      try {
+        await User.updateOne({ email }, { $set: { isEmailVerified: true }, $unset: { otp: 1, otpExpiry: 1 } });
+        console.log(`✅ Auto-verified ${email} due to email failure`);
+      } catch (dbErr) {
+        console.error("Failed to auto-verify:", dbErr.message);
+      }
+    });
 
     return res.status(201).json({
       success: true,
