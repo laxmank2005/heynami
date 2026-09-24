@@ -28,6 +28,7 @@ const userSlice = createSlice({
       }
     },
     updateUserList: (state, action) => {
+      if (!state.otherUsers) return;
       const { userId, isUnread, lastMessage, lastMessageTime, userObj } = action.payload;
       const userIndex = state.otherUsers.findIndex((u) => u._id === userId);
       
@@ -51,6 +52,7 @@ const userSlice = createSlice({
       }
     },
     clearUnread: (state, action) => {
+      if (!state.otherUsers) return;
       const user = state.otherUsers.find((u) => u._id === action.payload);
       if (user) {
         user.hasUnread = false;
