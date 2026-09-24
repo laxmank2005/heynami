@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import connectDB from "./config/database.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -148,13 +149,13 @@ app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "Server is running", env: process.env.NODE_ENV });
 });
 
-// ── Production: Serve the React build ──────────────────────────────────────
-if (isProduction) {
-  const frontendDistPath = path.join(__dirname, "..", "Frontend", "dist");
+// ── Production: Serve the React build (if dist exists) ──────────────────────
+const frontendDistPath = path.join(__dirname, "..", "Frontend", "dist");
+if (fs.existsSync(frontendDistPath)) {
   app.use(express.static(frontendDistPath));
 
-  // All non-API routes → hand to React Router
-  app.get("*", (req, res) => {
+  // Express 5 compatible wildcard route (named parameter '{*path}')
+  app.get("{*path}", (req, res) => {
     if (!req.path.startsWith("/api")) {
       res.sendFile(path.join(frontendDistPath, "index.html"));
     }
@@ -163,7 +164,7 @@ if (isProduction) {
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on port ${PORT} [${process.env.NODE_ENV || "development"}]`);
-  if (isProduction) {
+  if (fs.existsSync(frontendDistPath)) {
     console.log(`🌍 Serving frontend static files from Frontend/dist`);
   }
 });
