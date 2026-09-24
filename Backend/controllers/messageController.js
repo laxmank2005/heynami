@@ -184,7 +184,7 @@ export const deleteMessage = async (req, res) => {
         }
 
         msg.isDeleted = true;
-        msg.message = ""; // clear text for privacy
+        msg.message = "[deleted]"; // Can't use "" — Mongoose required validator rejects empty strings
         await msg.save();
 
         // Emit socket to receiver
@@ -200,8 +200,8 @@ export const deleteMessage = async (req, res) => {
         }
         return res.status(200).json({ success: true, message: "Message deleted", msg });
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
+        console.error("Delete message error:", error);
+        return res.status(500).json({ success: false, message: error.message || "Internal Server Error" });
     }
 };
 
