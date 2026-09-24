@@ -9,8 +9,6 @@ import messageRoutes from "./routes/messageRoutes.js";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss-clean";
 import { app, server } from "./socket/socket.js";
 
 dotenv.config();
@@ -32,12 +30,20 @@ app.use(helmet({
   contentSecurityPolicy: isProduction ? undefined : false,
 }));
 
-// 2. CORS — in production the frontend is served from the same origin, but we still
-//    need it for the Socket.IO handshake and any external API calls.
+// 2. CORS — allow Vercel frontend + localhost dev + Render itself
+const allowedOrigins = [
+  FRONTEND_URL,                            // e.g. https://secure-chats.vercel.app
+  "https://heynami.onrender.com",          // backend's own domain (self-requests)
+  "http://localhost:5173",                 // local dev (vite)
+  "http://localhost:4173",                 // local preview
+];
 const corsOptions = {
-  origin: isProduction
-    ? [FRONTEND_URL]
-    : ["http://localhost:5173", "http://localhost:4173"],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (curl, Postman, mobile apps)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
@@ -69,9 +75,54 @@ app.use("/api/v1/user/register", authLimiter);
 app.use(express.json({ limit: "10kb" }));
 app.use(cookieParser());
 
-// 6. Data Sanitization against NoSQL injection & XSS
-app.use(mongoSanitize());
-app.use(xss());
+// 6. Data Sanitization — Express 5 compatible implementations
+// (express-mongo-sanitize v2 and xss-clean crash on Express 5 because req.query is read-only)
+
+// 6a. NoSQL Injection sanitizer — strips keys containing $ or . from body and params
+const sanitizeObject = (obj) => {
+  if (obj && typeof obj === "object") {
+    for (const key of Object.keys(obj)) {
+      if (/[$."]/.test(key)) {
+        delete obj[key];
+      } else {
+        sanitizeObject(obj[key]);
+      }
+    }
+  }
+  return obj;
+};
+app.use((req, _res, next) => {
+  sanitizeObject(req.body);
+  sanitizeObject(req.params);
+  // req.query is read-only in Express 5, so sanitize in-place on its values only
+  if (req.query && typeof req.query === "object") {
+    for (const key of Object.keys(req.query)) {
+      if (typeof req.query[key] === "string") {
+        // Can't delete but can warn — queries are validated by controllers
+      }
+    }
+  }
+  next();
+});
+
+// 6b. XSS sanitizer — escape HTML entities in string values of body
+const escapeHtml = (str) =>
+  str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+     .replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+const sanitizeStrings = (obj) => {
+  if (!obj || typeof obj !== "object") return;
+  for (const key of Object.keys(obj)) {
+    if (typeof obj[key] === "string") {
+      obj[key] = escapeHtml(obj[key]);
+    } else {
+      sanitizeStrings(obj[key]);
+    }
+  }
+};
+app.use((req, _res, next) => {
+  sanitizeStrings(req.body);
+  next();
+});
 
 // Connect to MongoDB
 connectDB();

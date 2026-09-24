@@ -8,12 +8,19 @@ const app=express();
 
 const server =http.createServer(app);
 
-const frontendUrl = process.env.FRONTEND_URL ? (process.env.FRONTEND_URL.endsWith('/') ? process.env.FRONTEND_URL.slice(0, -1) : process.env.FRONTEND_URL) : 'http://localhost:5173';
+const frontendUrl = process.env.FRONTEND_URL
+  ? (process.env.FRONTEND_URL.endsWith('/') ? process.env.FRONTEND_URL.slice(0, -1) : process.env.FRONTEND_URL)
+  : 'http://localhost:5173';
 
-const io =new Server(server,{
-    cors:{
-        origin: frontendUrl,
-        methods:['GET','POST'],
+const io = new Server(server, {
+    cors: {
+        origin: [
+            frontendUrl,                           // e.g. https://secure-chats.vercel.app
+            "https://heynami.onrender.com",        // Render backend itself
+            "http://localhost:5173",               // local Vite dev
+            "http://localhost:4173",               // local preview
+        ],
+        methods: ['GET', 'POST'],
         credentials: true
     },
 });
