@@ -115,16 +115,23 @@ app.use((req, _res, next) => {
 });
 
 // 6b. XSS sanitizer — escape HTML entities in string values of body
+// IMPORTANT: Skip fields that contain raw binary/crypto data or passwords
+const XSS_SKIP_FIELDS = new Set([
+  "password", "confirmPassword",
+  "publicKey", "encryptedPrivateKey", "keySalt", "keyIv",
+  "otp"
+]);
 const escapeHtml = (str) =>
   str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
      .replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
-const sanitizeStrings = (obj) => {
+const sanitizeStrings = (obj, parentKey = null) => {
   if (!obj || typeof obj !== "object") return;
   for (const key of Object.keys(obj)) {
+    if (XSS_SKIP_FIELDS.has(key)) continue; // Skip sensitive fields
     if (typeof obj[key] === "string") {
       obj[key] = escapeHtml(obj[key]);
     } else {
-      sanitizeStrings(obj[key]);
+      sanitizeStrings(obj[key], key);
     }
   }
 };
