@@ -1,6 +1,7 @@
 import React from "react";
 import "./index.css";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate, useLocation, useOutlet } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 
 import Homepage from "./components/Homepage";
 import Register from "./components/Register";
@@ -26,28 +27,57 @@ const PrivateRoute = ({ children }) => {
   return authUser ? children : <Navigate to="/landing" replace />;
 };
 
+// Smooth Animated Layout for seamless page-to-page transitions
+const AnimatedLayout = () => {
+  const location = useLocation();
+  const currentOutlet = useOutlet();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+        transition={{
+          duration: 0.24,
+          ease: [0.22, 1, 0.36, 1],
+        }}
+        className="w-full min-h-[100dvh]"
+      >
+        {currentOutlet}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
+
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: <PrivateRoute><Homepage /></PrivateRoute>
-  },
-  {
-    path: "/landing",
-    element: <PublicOnlyRoute><LandingPage /></PublicOnlyRoute>
-  },
-  {
-    path: "/register",
-    element: <PublicOnlyRoute><Register /></PublicOnlyRoute>
-  },
-  {
-    path: "/login",
-    element: <PublicOnlyRoute><Login /></PublicOnlyRoute>
-  },
-  {
-    path: "*",
-    element: <Navigate to="/" replace />
+    element: <AnimatedLayout />,
+    children: [
+      {
+        path: "/",
+        element: <PrivateRoute><Homepage /></PrivateRoute>
+      },
+      {
+        path: "/landing",
+        element: <PublicOnlyRoute><LandingPage /></PublicOnlyRoute>
+      },
+      {
+        path: "/register",
+        element: <PublicOnlyRoute><Register /></PublicOnlyRoute>
+      },
+      {
+        path: "/login",
+        element: <PublicOnlyRoute><Login /></PublicOnlyRoute>
+      },
+      {
+        path: "*",
+        element: <Navigate to="/" replace />
+      }
+    ]
   }
-])
+]);
 
 const App = () => {
 
