@@ -13,4 +13,8 @@ const ConversationModel = new mongoose.Schema({
         ref:"Messages"
     }]
 },{timestamps:true});
+
+// Index for performance
+ConversationModel.index({ participants: 1 });
+
 export const Conversation = mongoose.model("Conversation",ConversationModel);

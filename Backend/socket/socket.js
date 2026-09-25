@@ -92,6 +92,25 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- Video Calling Events ---
+    socket.on('callUser', ({ receiverId, callerData, roomId }) => {
+        const receiverSockets = userSocketMap[receiverId];
+        if (receiverSockets && receiverSockets.length > 0) {
+            receiverSockets.forEach(socketId => {
+                io.to(socketId).emit('incomingCall', { callerData, roomId });
+            });
+        }
+    });
+
+    socket.on('rejectCall', ({ callerId }) => {
+        const callerSockets = userSocketMap[callerId];
+        if (callerSockets && callerSockets.length > 0) {
+            callerSockets.forEach(socketId => {
+                io.to(socketId).emit('callRejected');
+            });
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log('user disconnected', socket.id);
         if (userId && userSocketMap[userId]) {

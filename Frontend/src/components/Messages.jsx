@@ -1,11 +1,40 @@
-import React from "react";
+import React, { useRef, useLayoutEffect } from "react";
 import Message from "./Message";
 import useGetMessages from "../hooks/useGetMessages";
 import { useSelector } from "react-redux";
 
 const Messages = () => {
-  useGetMessages();
+  const { fetchMoreMessages, hasMore, isLoadingMore } = useGetMessages();
   const { messages } = useSelector((store) => store.message);
+
+  const containerRef = useRef(null);
+  const endRef = useRef(null);
+  const prevScrollHeight = useRef(0);
+
+  // Auto-scroll to bottom when a NEW message is received
+  useLayoutEffect(() => {
+    if (prevScrollHeight.current === 0) {
+      endRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const handleScroll = () => {
+    if (!containerRef.current) return;
+    if (containerRef.current.scrollTop === 0 && hasMore && !isLoadingMore) {
+      prevScrollHeight.current = containerRef.current.scrollHeight;
+      fetchMoreMessages();
+    }
+  };
+
+  useLayoutEffect(() => {
+    if (containerRef.current && prevScrollHeight.current > 0) {
+      const scrollDiff = containerRef.current.scrollHeight - prevScrollHeight.current;
+      if (scrollDiff > 0) {
+        containerRef.current.scrollTop += scrollDiff;
+      }
+      prevScrollHeight.current = 0;
+    }
+  }, [messages]);
 
   const formatDateLabel = (dateString) => {
     if (!dateString) return "";
@@ -20,34 +49,40 @@ const Messages = () => {
 
   return (
     <div
+      ref={containerRef}
+      onScroll={handleScroll}
       className="flex-1 overflow-y-auto custom-scrollbar px-6 py-5 bg-white dark:bg-[#0d0d0d] transition-colors duration-300"
     >
+      {isLoadingMore && (
+        <div className="flex justify-center py-2">
+          <div className="w-5 h-5 border-2 border-t-transparent border-violet-500 rounded-full animate-spin"></div>
+        </div>
+      )}
       {/* Loading skeleton */}
       {messages === null && (
         <div className="flex flex-col gap-6 pt-4">
           {[...Array(6)].map((_, i) => {
             const isMyMessage = i % 2 !== 0;
             const bubbleWidths = ['w-32', 'w-48', 'w-64', 'w-40', 'w-56', 'w-36'];
-            
+
             return (
               <div key={i} className={`flex items-start gap-2.5 ${isMyMessage ? 'flex-row-reverse' : ''}`}>
                 {!isMyMessage && (
                   <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-stone-800 animate-pulse flex-shrink-0 mt-0.5" />
                 )}
-                
+
                 <div className={`flex flex-col gap-1 ${isMyMessage ? 'items-end' : 'items-start'}`}>
                   {/* Sender Name & Time Skeleton */}
                   <div className="flex items-center gap-2 px-1 mb-0.5">
                     <div className="h-3 w-12 bg-gray-200 dark:bg-stone-800 rounded animate-pulse" />
                     <div className="h-2.5 w-10 bg-gray-100 dark:bg-stone-800/60 rounded animate-pulse" />
                   </div>
-                  
+
                   {/* Chat Bubble Skeleton */}
-                  <div className={`h-10 rounded-2xl animate-pulse ${
-                    isMyMessage 
-                      ? 'bg-violet-100 dark:bg-violet-900/20 rounded-br-sm' 
+                  <div className={`h-10 rounded-2xl animate-pulse ${isMyMessage
+                      ? 'bg-violet-100 dark:bg-violet-900/20 rounded-br-sm'
                       : 'bg-gray-100 dark:bg-stone-800 rounded-bl-sm'
-                  } ${bubbleWidths[i]}`} />
+                    } ${bubbleWidths[i]}`} />
                 </div>
               </div>
             );
@@ -91,6 +126,9 @@ const Messages = () => {
           </p>
         </div>
       ) : null}
+      
+      {/* Invisible element to scroll to */}
+      <div ref={endRef} />
     </div>
   );
 };

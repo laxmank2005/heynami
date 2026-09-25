@@ -10,12 +10,13 @@ import messageRoutes from "./routes/messageRoutes.js";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import compression from "compression";
 import { app, server } from "./socket/socket.js";
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
+const __dirname = path.dirname(__filename);
 
 const PORT = process.env.PORT || 8080;
 let FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -58,6 +59,9 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
 };
 app.use(cors(corsOptions));
+
+// 2.5 Compression — Shrink API payloads by up to 80%
+app.use(compression());
 
 // 3. Global Rate Limiting
 const limiter = rateLimit({
@@ -123,7 +127,7 @@ const XSS_SKIP_FIELDS = new Set([
 ]);
 const escapeHtml = (str) =>
   str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-     .replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
+    .replace(/"/g, "&quot;").replace(/'/g, "&#x27;");
 const sanitizeStrings = (obj, parentKey = null) => {
   if (!obj || typeof obj !== "object") return;
   for (const key of Object.keys(obj)) {

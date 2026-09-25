@@ -115,15 +115,41 @@ export const markAsRead = async (req, res) => {
     }
 };
 
-// Get messages
+// Get messages (Paginated)
 export const getMessage = async (req, res) => {
     try {
         const receiverId = req.params.id;
         const senderId = req.id;
-        const conversation = await Conversation.findOne({
-            participants: { $all: [senderId, receiverId] }
-        }).populate("messages");
-        return res.status(200).json(conversation?.messages || []);
+        
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 50;
+        const skip = (page - 1) * limit;
+
+        // Query Messages collection directly using indexes
+        const messages = await Messages.find({
+            $or: [
+                { senderId: senderId, receiverId: receiverId },
+                { senderId: receiverId, receiverId: senderId }
+            ]
+        })
+        .sort({ createdAt: -1 }) // Fetch newest first
+        .skip(skip)
+        .limit(limit);
+
+        // Count total for pagination meta
+        const totalMessages = await Messages.countDocuments({
+            $or: [
+                { senderId: senderId, receiverId: receiverId },
+                { senderId: receiverId, receiverId: senderId }
+            ]
+        });
+
+        return res.status(200).json({
+            success: true,
+            messages: messages.reverse(), // Reverse to send chronologically
+            totalPages: Math.ceil(totalMessages / limit),
+            currentPage: page
+        });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal Server Error" });

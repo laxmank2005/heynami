@@ -19,6 +19,14 @@ const messageSlice = createSlice({
         setMessages: (state, action) => {
             state.messages = action.payload;
         },
+        appendMessages: (state, action) => {
+            if (state.messages) {
+                // older messages added at the beginning
+                state.messages = [...action.payload, ...state.messages];
+            } else {
+                state.messages = action.payload;
+            }
+        },
         addMessage: (state, action) => {
             if (state.messages) {
                 state.messages.push(action.payload);
@@ -68,5 +76,5 @@ const messageSlice = createSlice({
     }
 });
 
-export const { setMessages, addMessage, updateMessageStatus, markAllMessagesRead, updateMessage, updateMessageReactions, setReplyingTo, setEditingMessage } = messageSlice.actions;
+export const { setMessages, appendMessages, addMessage, updateMessageStatus, markAllMessagesRead, updateMessage, updateMessageReactions, setReplyingTo, setEditingMessage } = messageSlice.actions;
 export default messageSlice.reducer;

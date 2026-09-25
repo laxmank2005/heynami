@@ -155,9 +155,25 @@ const MessageContainer = () => {
 
         {/* Right actions */}
         <div className="flex items-center gap-1">
-          <button className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-800 transition">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          <button 
+            onClick={() => {
+              // Create a unique room ID based on both users (alphabetical sort ensures same ID for both)
+              const roomId = [authUser._id, selectedUser._id].sort().join('_');
+              socket.emit('callUser', { 
+                receiverId: selectedUser._id, 
+                callerData: { _id: authUser._id, fullName: authUser.fullName, profilePhoto: authUser.profilePhoto },
+                roomId 
+              });
+              // Dispatch a global event or update Redux to show the VideoCall UI
+              // We'll use a custom window event for simplicity to communicate with App.jsx
+              window.dispatchEvent(new CustomEvent('startVideoCall', { detail: roomId }));
+            }}
+            className="p-2 rounded-xl text-violet-500 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/30 transition"
+            title="Start Video Call"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
             </svg>
           </button>
           <button className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-stone-200 hover:bg-gray-100 dark:hover:bg-stone-800 transition">

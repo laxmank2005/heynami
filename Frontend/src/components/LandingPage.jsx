@@ -32,9 +32,9 @@ const LandingPage = () => {
 
   return (
     <div className="bg-gray-50 dark:bg-[#0d0d0d] min-h-screen text-gray-900 dark:text-white font-[Inter,system-ui,sans-serif] selection:bg-violet-500/30 overflow-hidden flex flex-col transition-colors duration-300">
-      
+
       {/* ── Navbar ── */}
-      <motion.nav 
+      <motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
@@ -74,8 +74,8 @@ const LandingPage = () => {
         <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-indigo-200/30 dark:bg-indigo-900/10 blur-[100px] pointer-events-none -z-0" />
 
         <div className="max-w-7xl mx-auto px-6 w-full flex flex-col items-center text-center relative z-10">
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -91,7 +91,7 @@ const LandingPage = () => {
               without <br /> the noise.
             </h1>
 
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.8 }}
@@ -100,7 +100,7 @@ const LandingPage = () => {
               A fast, private, real-time chat app that keeps your conversations end-to-end encrypted and clutter-free.
             </motion.p>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
