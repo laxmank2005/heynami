@@ -75,7 +75,8 @@ const VideoCall = ({ roomID, userID, userName, onLeave }) => {
         zp.destroy();
       }
     };
-  }, [roomID, userID, userName, onLeave]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomID, userID, userName]);
 
   return (
     <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">

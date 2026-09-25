@@ -5,7 +5,8 @@ import axios from 'axios';
 import { toast } from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { setAuthUser } from '../redux/userSlice';
+import { setAuthUser, setSelectedUser, setOtherUsers } from '../redux/userSlice';
+import { setMessages } from '../redux/messageSlice';
 import { API_ENDPOINTS } from '../config/api';
 import ThemeToggle from './ThemeToggle';
 
@@ -36,6 +37,9 @@ const Sidebar = () => {
       navigate("/login");
       toast.success(res.data.message);
       dispatch(setAuthUser(null));
+      dispatch(setSelectedUser(null));
+      dispatch(setOtherUsers(null));
+      dispatch(setMessages([]));
     } catch (error) {
       console.log(error);
     }

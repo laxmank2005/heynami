@@ -94,6 +94,11 @@ const App = () => {
   const [activeCallRoomId, setActiveCallRoomId] = useState(null);
   const [incomingCallData, setIncomingCallData] = useState(null);
 
+  // Stable callback so VideoCall doesn't unmount on Redux updates
+  const handleLeaveCall = React.useCallback(() => {
+    setActiveCallRoomId(null);
+  }, []);
+
   // Listen for custom window event to start a call
   useEffect(() => {
     const handleStartCall = (e) => {
@@ -152,7 +157,7 @@ const App = () => {
           roomID={activeCallRoomId} 
           userID={authUser._id} 
           userName={authUser.fullName}
-          onLeave={() => setActiveCallRoomId(null)}
+          onLeave={handleLeaveCall}
         />
       )}
 
