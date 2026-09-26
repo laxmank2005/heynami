@@ -275,9 +275,13 @@ export const getConversationUsers = async (req, res) => {
     const loggedInUserId = req.id;
 
     // Find all conversations where the logged-in user is a participant
+    // Select ONLY participants and updatedAt — avoid loading huge messages arrays
     const conversations = await Conversation.find({
       participants: loggedInUserId
-    }).sort({ updatedAt: -1 });
+    })
+      .select("participants updatedAt")
+      .sort({ updatedAt: -1 })
+      .lean();
 
     // Collect the OTHER participant IDs (excluding self), deduplicated
     const otherUserIds = [];
@@ -296,9 +300,10 @@ export const getConversationUsers = async (req, res) => {
       return res.status(200).json({ success: true, users: [] });
     }
 
-    // Fetch the actual user documents for those IDs
+    // Fetch the actual user documents for those IDs as plain lean objects
     const users = await User.find({ _id: { $in: otherUserIds } })
-      .select("fullName email mobile profilePhoto gender publicKey isEmailVerified");
+      .select("fullName email mobile profilePhoto gender publicKey isEmailVerified")
+      .lean();
 
     // Re-sort to match the conversation order (most recent first)
     const userMap = new Map(users.map(u => [u._id.toString(), u]));
@@ -344,7 +349,8 @@ export const searchUsers = async (req, res) => {
       ],
     })
       .select("fullName email mobile profilePhoto gender publicKey")
-      .limit(10);
+      .limit(10)
+      .lean();
 
     return res.status(200).json({
       success: true,

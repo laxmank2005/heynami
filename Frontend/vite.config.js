@@ -12,6 +12,8 @@ export default defineConfig({
       output: {
         // Split vendor chunks for better caching (function form required by Vite 8 / Rolldown)
         manualChunks(id) {
+          if (id.includes('node_modules/@zegocloud')) return 'zego-video';
+          if (id.includes('node_modules/framer-motion')) return 'motion';
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) return 'react';
           if (id.includes('node_modules/react-router-dom')) return 'router';
           if (id.includes('node_modules/@reduxjs') || id.includes('node_modules/react-redux') || id.includes('node_modules/redux-persist')) return 'redux';

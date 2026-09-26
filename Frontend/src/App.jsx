@@ -20,7 +20,8 @@ const LoadingFallback = () => (
     <div className="w-8 h-8 border-4 border-t-transparent border-violet-500 rounded-full animate-spin"></div>
   </div>
 );
-import VideoCall from "./components/VideoCall";
+
+const VideoCall = lazy(() => import("./components/VideoCall"));
 
 // Only accessible when NOT logged in (login, register)
 const PublicOnlyRoute = ({ children }) => {
@@ -153,12 +154,19 @@ const App = () => {
 
       {/* --- Active Video Call --- */}
       {activeCallRoomId && authUser && (
-        <VideoCall 
-          roomID={activeCallRoomId} 
-          userID={authUser._id} 
-          userName={authUser.fullName}
-          onLeave={handleLeaveCall}
-        />
+        <Suspense fallback={
+          <div className="fixed inset-0 z-50 bg-black/90 flex flex-col items-center justify-center text-white">
+            <div className="w-10 h-10 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-sm font-medium text-stone-300">Connecting to secure video call...</p>
+          </div>
+        }>
+          <VideoCall 
+            roomID={activeCallRoomId} 
+            userID={authUser._id} 
+            userName={authUser.fullName}
+            onLeave={handleLeaveCall}
+          />
+        </Suspense>
       )}
 
       {/* --- Incoming Call Modal --- */}

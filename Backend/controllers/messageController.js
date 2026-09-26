@@ -47,12 +47,12 @@ export const sendMessage = async (req, res) => {
             gotConversation.messages.push(newMessage._id);
         }
 
-        await Promise.all([gotConversation.save(), newMessage.save()]);
+        await gotConversation.save();
 
         // Emit to receiver via socket
         if (isReceiverOnline) {
-            const senderUser = await User.findById(senderId).select("fullName email profilePhoto gender publicKey");
-            const messageObj = newMessage.toObject();
+            const senderUser = await User.findById(senderId).select("fullName email profilePhoto gender publicKey").lean();
+            const messageObj = newMessage.toObject ? newMessage.toObject() : newMessage;
             messageObj.senderObj = senderUser;
 
             receiverSocketIds.forEach(socketId => {
@@ -125,24 +125,22 @@ export const getMessage = async (req, res) => {
         const limit = parseInt(req.query.limit) || 50;
         const skip = (page - 1) * limit;
 
-        // Query Messages collection directly using indexes
-        const messages = await Messages.find({
+        // Query Messages collection concurrently with lean() for fast non-blocking reads
+        const filter = {
             $or: [
                 { senderId: senderId, receiverId: receiverId },
                 { senderId: receiverId, receiverId: senderId }
             ]
-        })
-        .sort({ createdAt: -1 }) // Fetch newest first
-        .skip(skip)
-        .limit(limit);
+        };
 
-        // Count total for pagination meta
-        const totalMessages = await Messages.countDocuments({
-            $or: [
-                { senderId: senderId, receiverId: receiverId },
-                { senderId: receiverId, receiverId: senderId }
-            ]
-        });
+        const [messages, totalMessages] = await Promise.all([
+            Messages.find(filter)
+                .sort({ createdAt: -1 }) // Covered sort using compound index
+                .skip(skip)
+                .limit(limit)
+                .lean(),
+            Messages.countDocuments(filter)
+        ]);
 
         return res.status(200).json({
             success: true,

@@ -48,7 +48,8 @@ const messageModel = new mongoose.Schema({
 });
 
 // Indexes for performance
-messageModel.index({ senderId: 1, receiverId: 1 });
+messageModel.index({ senderId: 1, receiverId: 1, createdAt: -1 });
+messageModel.index({ receiverId: 1, senderId: 1, createdAt: -1 });
 messageModel.index({ createdAt: -1 });
 
 export const Messages = mongoose.model("Messages", messageModel);

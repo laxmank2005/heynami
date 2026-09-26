@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setMessages, addMessage, setReplyingTo, setEditingMessage, updateMessage } from "../redux/messageSlice";
@@ -11,8 +11,9 @@ import {
   encryptMessage 
 } from "../utils/crypto";
 import { getPrivateKey } from "../utils/keyStore";
-import EmojiPicker from "emoji-picker-react";
 import { BsEmojiSmile, BsX } from "react-icons/bs";
+
+const EmojiPicker = lazy(() => import("emoji-picker-react"));
 
 const SendInput = () => {
   const [message, setMessage] = useState("");
@@ -197,7 +198,13 @@ const SendInput = () => {
       {/* Emoji Picker Popover */}
       {showEmojiPicker && (
         <div className="absolute bottom-[calc(100%+10px)] left-4 z-50 shadow-2xl">
-          <EmojiPicker onEmojiClick={onEmojiClick} theme="auto" />
+          <Suspense fallback={
+            <div className="w-[300px] h-[350px] flex items-center justify-center bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-200 dark:border-stone-800 shadow-xl">
+              <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          }>
+            <EmojiPicker onEmojiClick={onEmojiClick} theme="auto" />
+          </Suspense>
         </div>
       )}
 

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import OtherUsers from './OtherUsers';
-import NewChatModal from './NewChatModal';
+const NewChatModal = lazy(() => import('./NewChatModal'));
 import axios from 'axios';
 import { toast } from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
@@ -205,10 +205,14 @@ const Sidebar = () => {
       </div>
 
       {/* New Chat Modal */}
-      <NewChatModal
-        isOpen={isNewChatOpen}
-        onClose={() => setIsNewChatOpen(false)}
-      />
+      {isNewChatOpen && (
+        <Suspense fallback={null}>
+          <NewChatModal
+            isOpen={isNewChatOpen}
+            onClose={() => setIsNewChatOpen(false)}
+          />
+        </Suspense>
+      )}
     </>
   );
 };
